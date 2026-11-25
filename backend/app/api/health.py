@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from app.core.config import settings
+from app.core.config import get_settings
 
 router = APIRouter(tags=["system"])
 
@@ -22,7 +22,8 @@ class HealthResponse(BaseModel):
 
 @router.get("/health", response_model=HealthResponse)
 def health() -> HealthResponse:
-    """Liveness check. Reports process health only (no external dependencies yet)."""
+    """Liveness check of the API process. Deliberately does not touch the database."""
+    settings = get_settings()
     return HealthResponse(
         status="ok",
         service=settings.app_name,

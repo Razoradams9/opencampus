@@ -10,12 +10,15 @@ import { SystemStatus } from "../components/dashboard/SystemStatus";
 import { TodaySchedule } from "../components/dashboard/TodaySchedule";
 import { WelcomeSection } from "../components/dashboard/WelcomeSection";
 import type { DashboardData } from "../data/types";
+import { ROLE_LABEL, type ActiveInstitution, type AuthUser } from "../lib/auth/types";
 import { daysBetween } from "../lib/dates";
 import { filterDashboard } from "../lib/filterDashboard";
 import { subjectLookup } from "../lib/subjects";
 import type { BackendHealth } from "../lib/useBackendHealth";
 
 interface DashboardProps {
+  user: AuthUser;
+  institution: ActiveInstitution;
   data: DashboardData;
   today: Date;
   health: BackendHealth;
@@ -23,7 +26,7 @@ interface DashboardProps {
   onClearQuery: () => void;
 }
 
-export function Dashboard({ data, today, health, query, onClearQuery }: DashboardProps) {
+export function Dashboard({ user, institution, data, today, health, query, onClearQuery }: DashboardProps) {
   // Checkbox state is local to this session; nothing is persisted.
   const [assignments, setAssignments] = useState(data.assignments);
   const toggleAssignment = (id: string) =>
@@ -61,7 +64,8 @@ export function Dashboard({ data, today, health, query, onClearQuery }: Dashboar
       ) : (
         <p className="flex items-center gap-2 text-xs text-ink-subtle">
           <FlaskConical className="size-3.5 shrink-0" aria-hidden="true" />
-          Demonstration data: the student, college and courses shown are fictional.
+          Your account and institution are real. The courses, timetable, assignments and updates below are
+          demonstration data.
         </p>
       )}
 
@@ -70,7 +74,9 @@ export function Dashboard({ data, today, health, query, onClearQuery }: Dashboar
           <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
             <div className="lg:col-span-8 *:h-full">
               <WelcomeSection
-                student={data.student}
+                firstName={user.full_name.split(" ")[0]}
+                roleLabel={ROLE_LABEL[institution.role]}
+                institutionName={institution.name}
                 today={today}
                 classesToday={data.schedule.length}
                 dueThisWeek={dueThisWeek}

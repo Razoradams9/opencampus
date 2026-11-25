@@ -1,0 +1,26 @@
+# Local PostgreSQL for development and tests.
+#   docker compose --env-file backend/.env up -d
+# On first start, backend/db/init/01-roles.sh creates the owner and app roles
+# and the opencampus / opencampus_test databases.
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${OPENCAMPUS_DB_SUPERUSER_PASSWORD:?set in backend/.env}
+      OPENCAMPUS_DB_OWNER_PASSWORD: ${OPENCAMPUS_DB_OWNER_PASSWORD:?set in backend/.env}
+      OPENCAMPUS_DB_APP_PASSWORD: ${OPENCAMPUS_DB_APP_PASSWORD:?set in backend/.env}
+    ports:
+      - "127.0.0.1:5432:5432"   # bound to localhost only
+    volumes:
+      - opencampus-pg:/var/lib/postgresql/data
+      - ./backend/db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  opencampus-pg:

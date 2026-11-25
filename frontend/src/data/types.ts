@@ -2,19 +2,6 @@
 
 export type SubjectTone = "cobalt" | "teal" | "amber" | "rose";
 
-export interface StudentProfile {
-  firstName: string;
-  fullName: string;
-  initials: string;
-  programme: string;
-  year: string;
-}
-
-export interface College {
-  name: string;
-  campus: string;
-}
-
 export interface Subject {
   id: string;
   code: string;
@@ -74,9 +61,8 @@ export interface CampusEvent {
   host: string;
 }
 
+/** Sample academic content. Identity (user, institution) comes from auth. */
 export interface DashboardData {
-  student: StudentProfile;
-  college: College;
   subjects: Subject[];
   schedule: ScheduleItem[];
   assignments: Assignment[];

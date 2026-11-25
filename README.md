@@ -1,67 +1,87 @@
 # OpenCampus
 
-Open-source, multi-tenant academic platform. **Current milestone: M1 — Student dashboard.**
+Open-source, multi-tenant academic platform. **Current milestone: M2 — Identity, authentication and multi-tenancy.**
 
-- **M0 — Foundation:** FastAPI backend with a health endpoint, React application
-  shell, design tokens, verified frontend↔backend connection.
-- **M1 — Student dashboard:** a responsive Home dashboard driven by fictional
-  demo data. Working: local search across dashboard content, assignment
-  checkboxes (session-only), notifications panel (demo updates), responsive
-  sidebar, live API status. Everything else is visibly marked *Soon* /
-  *Planned* and is disabled.
+- **M0 — Foundation:** FastAPI backend, health endpoint, React shell, design tokens.
+- **M1 — Student dashboard:** responsive Home dashboard on fictional demo content.
+- **M2 — Identity:** PostgreSQL, real accounts (Argon2id), JWT access tokens +
+  rotating HttpOnly refresh cookies, institutions and memberships, backend role
+  checks, tenant isolation with row-level security, login/registration UI and
+  institution switching. Dashboard *content* is still demo data.
 
-No authentication, database, AI, or multi-college features exist yet.
+No AI, coursework or faculty/admin dashboards exist yet. Security design:
+[`docs/security.md`](docs/security.md).
 
 ## Stack
 
-| Layer    | Technology                                            |
-| -------- | ----------------------------------------------------- |
-| Frontend | React 19, TypeScript, Vite 8, Tailwind CSS 4, Lucide  |
-| Backend  | Python 3.11+, FastAPI, Uvicorn                        |
-
-## Structure
-
-```
-opencampus/
-├── backend/
-│   ├── app/
-│   │   ├── api/health.py      GET /api/health
-│   │   ├── core/config.py     environment-based settings
-│   │   └── main.py            app factory, CORS, router wiring
-│   ├── tests/                 pytest suite
-│   ├── requirements.txt       runtime deps
-│   └── requirements-dev.txt   + test deps
-├── frontend/
-│   ├── src/
-│   │   ├── components/        shell: BrandMark, Sidebar, TopBar, NotificationsMenu, ConnectionPill
-│   │   │   ├── dashboard/     one component per dashboard section
-│   │   │   └── ui/            SoonTag, PanelHeader, Highlight, NoMatches
-│   │   ├── data/              types.ts (dashboard types), demo.ts (fictional sample data)
-│   │   ├── layouts/AppShell   sidebar + top bar frame
-│   │   ├── pages/Dashboard    composes sections, owns search filtering + checkbox state
-│   │   ├── lib/               API client, health hook, dates, search, filtering
-│   │   └── styles/index.css   design tokens + Tailwind theme
-│   └── vite.config.ts         dev proxy /api → :8000
-└── docs/design-system.md
-```
+| Layer    | Technology                                                       |
+| -------- | ---------------------------------------------------------------- |
+| Frontend | React 19, TypeScript, Vite 8, Tailwind CSS 4, Lucide             |
+| Backend  | Python 3.11+, FastAPI, SQLAlchemy 2.0, Alembic, Argon2id, PyJWT  |
+| Database | PostgreSQL 14+ (16 recommended)                                  |
 
 ## Prerequisites
 
-- Python 3.11+
-- Node.js 20.19+ (or 22.12+) and npm
+- Python 3.11+, Node.js 20.19+ (or 22.12+)
+- PostgreSQL: Docker (Compose file provided) **or** a local install
 
 ## Setup
 
-Backend:
+### 1. Configuration
+
+```bash
+cd opencampus/backend
+cp .env.example .env
+```
+
+Replace every `<...>` in `.env` (generate values with
+`python3 -c "import secrets; print(secrets.token_urlsafe(48))"`). `.env` is
+git-ignored; never commit it.
+
+### 2. Database
+
+With Docker:
+
+```bash
+cd opencampus
+docker compose --env-file backend/.env up -d
+```
+
+With a local PostgreSQL (run as a superuser):
+
+```bash
+cd opencampus/backend
+set -a; . ./.env; set +a
+bash db/init/01-roles.sh --print | sudo -u postgres psql -v ON_ERROR_STOP=1
+```
+
+Either way this creates the `opencampus_owner` (migrations) and
+`opencampus_app` (runtime, RLS-bound) roles and the `opencampus` and
+`opencampus_test` databases.
+
+### 3. Backend
 
 ```bash
 cd opencampus/backend
 python3 -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements-dev.txt
+alembic upgrade head
+python -m app.cli seed-demo      # optional: fictional demo institutions + users
 ```
 
-Frontend:
+`seed-demo` prompts for one password shared by all demo accounts (or reads
+`OPENCAMPUS_CLI_PASSWORD`). Accounts include
+`maya.okafor@aldermoor.example` (student), `iris.moreau@aldermoor.example`
+(college admin), and `sam.achebe@aldermoor.example` (member of two colleges).
+
+Platform administrators are created only from the CLI:
+
+```bash
+python -m app.cli create-platform-admin --email ops@example.org --name "Ops"
+```
+
+### 4. Frontend
 
 ```bash
 cd opencampus/frontend
@@ -70,12 +90,9 @@ npm install
 
 ## Run (development)
 
-Use two terminals.
-
 ```bash
 # Terminal 1 — API on http://127.0.0.1:8000
-cd opencampus/backend
-source .venv/bin/activate
+cd opencampus/backend && source .venv/bin/activate
 uvicorn app.main:app --reload --port 8000
 ```
 
@@ -85,53 +102,53 @@ cd opencampus/frontend
 npm run dev
 ```
 
-Open http://localhost:5173. Press `/` to search the dashboard. The top-right pill and the **System status** panel
-reflect the real result of `GET /api/health` (polled every 30 s; **Recheck**
-forces a check). Stop the backend and recheck to see the offline state.
+Open http://localhost:5173 and sign in or create an account (institution code
+`aldermoor` or `halvard` after seeding). API docs: http://127.0.0.1:8000/docs
 
-Interactive API docs: http://127.0.0.1:8000/docs
+## Migrations
 
-## How the frontend reaches the backend
+```bash
+cd opencampus/backend
+alembic upgrade head                               # apply
+alembic downgrade -1                               # roll back one
+alembic revision --autogenerate -m "describe it"   # new migration (review it!)
+```
 
-- **Development:** the browser calls `/api/...` on the Vite origin; Vite proxies
-  it to `http://127.0.0.1:8000`. Override with `OPENCAMPUS_API_URL`.
-- **Separate origins:** set `VITE_API_BASE_URL` (e.g. `https://api.example.edu`)
-  at build time, and allow the UI origin on the backend with
-  `OPENCAMPUS_CORS_ORIGINS` (comma-separated; default `http://localhost:5173`).
+Migrations connect with `OPENCAMPUS_MIGRATION_DATABASE_URL` (owner role).
+New institution-owned tables must include `institution_id`, enable + force
+RLS, add policies and grant the app role, in the migration itself.
 
-## Configuration
-
-| Variable                  | Where    | Default                 |
-| ------------------------- | -------- | ----------------------- |
-| `OPENCAMPUS_ENV`          | backend  | `development`           |
-| `OPENCAMPUS_CORS_ORIGINS` | backend  | `http://localhost:5173` |
-| `OPENCAMPUS_API_URL`      | Vite dev | `http://127.0.0.1:8000` |
-| `VITE_API_BASE_URL`       | frontend | empty (same origin)     |
-
-## Checks
+## Tests
 
 ```bash
 cd opencampus/backend && .venv/bin/python -m pytest -q
 ```
 
+Tests need `OPENCAMPUS_TEST_DATABASE_URL` / `OPENCAMPUS_TEST_MIGRATION_DATABASE_URL`
+(a database whose name contains `test`). The suite migrates it from scratch
+and connects as the app role, so RLS is exercised for real.
+
 ```bash
 cd opencampus/frontend && npm run build    # type-check + production build
 ```
 
-## API
+## API overview
 
-`GET /api/health` → `200`
+| Method | Path | Access |
+| ------ | ---- | ------ |
+| GET | `/api/health` | public |
+| GET | `/api/institutions/{slug}` | public |
+| POST | `/api/auth/register`, `/api/auth/login` | public |
+| POST | `/api/auth/refresh`, `/api/auth/logout` | refresh cookie + CSRF header |
+| GET | `/api/auth/me`, `/api/auth/sessions` | signed in |
+| POST | `/api/auth/switch-institution` | signed in, member of target |
+| DELETE | `/api/auth/sessions/{id}` | signed in, own session |
+| GET | `/api/institution` | member of active institution |
+| GET/PATCH | `/api/institution/members[/{id}]` | college_admin |
+| POST/PATCH | `/api/platform/institutions[/{slug}]`, `…/{slug}/admins` | platform_admin |
 
-```json
-{
-  "status": "ok",
-  "service": "OpenCampus API",
-  "version": "0.1.0",
-  "environment": "development",
-  "timestamp": "2026-11-25T05:46:06.915871Z",
-  "uptime_seconds": 0.329
-}
-```
+## Configuration
 
-This is a liveness check of the API process only; there are no downstream
-dependencies to report on yet.
+See `backend/.env.example` for every variable. Required: `OPENCAMPUS_DATABASE_URL`,
+`OPENCAMPUS_JWT_SECRET` (≥ 32 chars). The API refuses to start without them,
+and refuses insecure cookies when `OPENCAMPUS_ENV=production`.

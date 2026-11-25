@@ -1,5 +1,6 @@
 /**
- * Demonstration data. Every person, college and course here is fictional.
+ * Demonstration academic content. Every course, class and person here is fictional.
+ * The signed-in user and institution are real (from auth); this content is not.
  * Dates are generated relative to "today" so the demo always looks current.
  * Replace this module with API calls when the backend provides real data.
  */
@@ -10,15 +11,6 @@ export function createDemoDashboard(today: Date = new Date()): DashboardData {
   const day = (offset: number) => addDays(today, offset);
 
   return {
-    student: {
-      firstName: "Maya",
-      fullName: "Maya Okafor",
-      initials: "MO",
-      programme: "BSc Computer Science",
-      year: "Year 2",
-    },
-    college: { name: "Aldermoor College", campus: "Riverside campus" },
-
     subjects: [
       {
         id: "cs201",

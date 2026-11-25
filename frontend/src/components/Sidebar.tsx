@@ -1,20 +1,21 @@
 import {
   BookOpen,
-  Building2,
   CalendarRange,
-  ChevronsUpDown,
   ClipboardList,
   FolderOpen,
   Home,
+  LogOut,
   NotebookPen,
-  Settings,
   Sparkles,
   Trees,
   X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import type { College, StudentProfile } from "../data/types";
+import { useState } from "react";
+import { ROLE_LABEL, type Me } from "../lib/auth/types";
+import { Link } from "../lib/router";
 import { BrandMark } from "./BrandMark";
+import { InstitutionSwitcher } from "./InstitutionSwitcher";
 import { SoonTag } from "./ui/SoonTag";
 
 interface NavItem {
@@ -36,11 +37,21 @@ const UPCOMING: NavItem[] = [
 interface SidebarProps {
   open: boolean;
   onClose: () => void;
-  student: StudentProfile;
-  college: College;
+  me: Me;
+  onSwitchInstitution: (institutionId: string) => Promise<void>;
+  onLogout: () => Promise<void>;
 }
 
-export function Sidebar({ open, onClose, student, college }: SidebarProps) {
+function initials(name: string): string {
+  const parts = name.split(/\s+/).filter(Boolean);
+  return ((parts[0]?.[0] ?? "") + (parts.length > 1 ? parts[parts.length - 1][0] : "")).toUpperCase();
+}
+
+export function Sidebar({ open, onClose, me, onSwitchInstitution, onLogout }: SidebarProps) {
+  const [signingOut, setSigningOut] = useState(false);
+  const role = me.active_institution ? ROLE_LABEL[me.active_institution.role] : null;
+  const roleLine = [me.user.is_platform_admin ? "Platform admin" : null, role].filter(Boolean).join(" · ") || "No role";
+
   return (
     <>
       <div
@@ -70,26 +81,13 @@ export function Sidebar({ open, onClose, student, college }: SidebarProps) {
           </button>
         </div>
 
-        {/* College selector: visual only until multi-tenancy exists */}
         <div className="px-3 pt-1">
-          <button
-            type="button"
-            disabled
-            title="Switching colleges is not available yet"
-            className="flex w-full cursor-not-allowed items-center gap-3 border border-line bg-canvas/70 px-3 py-2 text-left"
-          >
-            <Building2 className="size-4 shrink-0 text-ink-subtle" aria-hidden="true" />
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-medium text-ink">{college.name}</span>
-              <span className="block truncate text-[0.6875rem] text-ink-subtle">{college.campus} · Demo</span>
-            </span>
-            <ChevronsUpDown className="size-3.5 shrink-0 text-ink-subtle" aria-hidden="true" />
-          </button>
+          <InstitutionSwitcher me={me} onSwitch={onSwitchInstitution} />
         </div>
 
         <nav aria-label="Primary" className="flex-1 overflow-y-auto px-3 pt-5 pb-4">
-          <a
-            href="/"
+          <Link
+            to="/"
             aria-current="page"
             onClick={onClose}
             className="relative flex items-center gap-3 rounded-oc bg-accent-soft px-3 py-2 text-sm font-medium text-accent"
@@ -97,7 +95,7 @@ export function Sidebar({ open, onClose, student, college }: SidebarProps) {
             <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-accent" aria-hidden="true" />
             <Home className="size-4" aria-hidden="true" />
             Home
-          </a>
+          </Link>
 
           <p className="oc-eyebrow mt-6 mb-1.5 px-3">Coming soon</p>
           <ul>
@@ -123,20 +121,26 @@ export function Sidebar({ open, onClose, student, college }: SidebarProps) {
             className="grid size-9 shrink-0 place-items-center bg-periwinkle font-display text-sm font-medium text-ink"
             aria-hidden="true"
           >
-            {student.initials}
+            {initials(me.user.full_name)}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium">{student.fullName}</p>
-            <p className="truncate text-[0.6875rem] text-ink-subtle">Demo student · {student.year}</p>
+            <p className="truncate text-sm font-medium">{me.user.full_name}</p>
+            <p className="truncate text-[0.6875rem] text-ink-subtle" title={me.user.email}>
+              {roleLine}
+            </p>
           </div>
           <button
             type="button"
-            disabled
-            title="Profile settings are not available yet"
-            aria-label="Profile settings (not available yet)"
-            className="grid size-8 cursor-not-allowed place-items-center text-ink-subtle"
+            onClick={async () => {
+              setSigningOut(true);
+              await onLogout();
+            }}
+            disabled={signingOut}
+            title="Sign out"
+            aria-label="Sign out"
+            className="grid size-8 place-items-center rounded-oc text-ink-muted transition-colors hover:bg-sunken hover:text-ink disabled:opacity-60"
           >
-            <Settings className="size-4" aria-hidden="true" />
+            <LogOut className="size-4" aria-hidden="true" />
           </button>
         </div>
       </aside>
