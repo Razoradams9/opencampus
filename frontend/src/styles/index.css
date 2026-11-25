@@ -17,7 +17,7 @@
   /* Ink — deep navy scale */
   --oc-ink: #13204a;
   --oc-ink-muted: #46527d;
-  --oc-ink-subtle: #7480a8;
+  --oc-ink-subtle: #5a6690; /* ≥4.9:1 on canvas */
   --oc-line: #d2daef;
   --oc-line-strong: #b4c0e3;
 
@@ -25,12 +25,18 @@
   --oc-accent: #3550c8; /* interactive: links, focus, active nav */
   --oc-accent-soft: #dfe5fb;
   --oc-signal: #e2683c; /* brand mark, single highlight per view */
-  --oc-success: #1d7f56;
+  --oc-success: #17704b;
   --oc-success-soft: #d9efe5;
   --oc-danger: #b83a33;
   --oc-danger-soft: #f6dedc;
-  --oc-pending: #9a6a12;
+  --oc-pending: #855a0c;
   --oc-pending-soft: #f4ead2;
+
+  /* Subject coding — identifies a subject across progress, schedule and tasks */
+  --oc-subject-cobalt: #3550c8;
+  --oc-subject-teal: #137a7f;
+  --oc-subject-amber: #a8650d;
+  --oc-subject-rose: #b4416b;
 
   /* Layout */
   --oc-sidebar-width: 15.5rem;
@@ -58,6 +64,10 @@
   --color-danger-soft: var(--oc-danger-soft);
   --color-pending: var(--oc-pending);
   --color-pending-soft: var(--oc-pending-soft);
+  --color-subject-cobalt: var(--oc-subject-cobalt);
+  --color-subject-teal: var(--oc-subject-teal);
+  --color-subject-amber: var(--oc-subject-amber);
+  --color-subject-rose: var(--oc-subject-rose);
 
   --font-display: "Fraunces", ui-serif, Georgia, serif;
   --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
@@ -83,6 +93,17 @@
   /* Small uppercase label used for section indices and metadata. */
   .oc-eyebrow {
     @apply font-mono text-[0.6875rem] font-medium tracking-[0.12em] text-ink-subtle uppercase;
+  }
+
+  /* Standard panel: flat surface, 1px rule, no shadow. */
+  .oc-panel {
+    @apply border border-line bg-surface;
+  }
+
+  /* Search hit highlight. */
+  .oc-mark {
+    @apply rounded-[2px] bg-lavender text-ink;
+    box-shadow: inset 0 -2px 0 var(--oc-accent);
   }
 
   /* Architectural blueprint grid: faint 24px lines with a stronger 96px rhythm. */

@@ -1,10 +1,15 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Sidebar } from "../components/Sidebar";
 import { TopBar } from "../components/TopBar";
+import type { DashboardData } from "../data/types";
 import type { BackendHealth } from "../lib/useBackendHealth";
 
 interface AppShellProps {
   health: BackendHealth;
+  data: DashboardData;
+  today: Date;
+  query: string;
+  onQueryChange: (value: string) => void;
   children: ReactNode;
 }
 
@@ -12,7 +17,7 @@ interface AppShellProps {
  * Persistent frame: fixed sidebar on desktop (≥1024px), slide-in drawer
  * below that, sticky top bar, scrollable main column.
  */
-export function AppShell({ health, children }: AppShellProps) {
+export function AppShell({ health, data, today, query, onQueryChange, children }: AppShellProps) {
   const [navOpen, setNavOpen] = useState(false);
 
   useEffect(() => {
@@ -26,11 +31,28 @@ export function AppShell({ health, children }: AppShellProps) {
 
   return (
     <div className="min-h-dvh">
-      <Sidebar open={navOpen} onClose={() => setNavOpen(false)} version={health.data?.version ?? null} />
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-ink focus:px-3 focus:py-2 focus:text-sm focus:text-canvas"
+      >
+        Skip to content
+      </a>
+
+      <Sidebar open={navOpen} onClose={() => setNavOpen(false)} student={data.student} college={data.college} />
 
       <div className="lg:pl-(--oc-sidebar-width)">
-        <TopBar onMenuClick={() => setNavOpen(true)} menuOpen={navOpen} connection={health.state} />
-        <main className="mx-auto max-w-6xl px-4 pt-8 pb-16 sm:px-6 lg:px-10 lg:pt-12">{children}</main>
+        <TopBar
+          onMenuClick={() => setNavOpen(true)}
+          menuOpen={navOpen}
+          connection={health.state}
+          query={query}
+          onQueryChange={onQueryChange}
+          notifications={data.updates.filter((u) => u.important)}
+          today={today}
+        />
+        <main id="main" className="mx-auto max-w-[78rem] px-4 pt-6 pb-16 sm:px-6 lg:px-10 lg:pt-8">
+          {children}
+        </main>
       </div>
     </div>
   );

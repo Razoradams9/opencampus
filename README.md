@@ -1,10 +1,16 @@
 # OpenCampus
 
-Open-source, multi-tenant academic platform. **Current milestone: M0 — Foundation.**
+Open-source, multi-tenant academic platform. **Current milestone: M1 — Student dashboard.**
 
-M0 delivers only the base: a FastAPI backend with a health endpoint, a React
-application shell, the design-token system, and a verified frontend↔backend
-connection. No authentication, database, or academic features exist yet.
+- **M0 — Foundation:** FastAPI backend with a health endpoint, React application
+  shell, design tokens, verified frontend↔backend connection.
+- **M1 — Student dashboard:** a responsive Home dashboard driven by fictional
+  demo data. Working: local search across dashboard content, assignment
+  checkboxes (session-only), notifications panel (demo updates), responsive
+  sidebar, live API status. Everything else is visibly marked *Soon* /
+  *Planned* and is disabled.
+
+No authentication, database, AI, or multi-college features exist yet.
 
 ## Stack
 
@@ -27,10 +33,13 @@ opencampus/
 │   └── requirements-dev.txt   + test deps
 ├── frontend/
 │   ├── src/
-│   │   ├── components/        BrandMark, Sidebar, TopBar, ConnectionPill, Placeholder
+│   │   ├── components/        shell: BrandMark, Sidebar, TopBar, NotificationsMenu, ConnectionPill
+│   │   │   ├── dashboard/     one component per dashboard section
+│   │   │   └── ui/            SoonTag, PanelHeader, Highlight, NoMatches
+│   │   ├── data/              types.ts (dashboard types), demo.ts (fictional sample data)
 │   │   ├── layouts/AppShell   sidebar + top bar frame
-│   │   ├── pages/Dashboard    welcome, live system status, module placeholders
-│   │   ├── lib/               API client, useBackendHealth hook
+│   │   ├── pages/Dashboard    composes sections, owns search filtering + checkbox state
+│   │   ├── lib/               API client, health hook, dates, search, filtering
 │   │   └── styles/index.css   design tokens + Tailwind theme
 │   └── vite.config.ts         dev proxy /api → :8000
 └── docs/design-system.md
@@ -76,7 +85,7 @@ cd opencampus/frontend
 npm run dev
 ```
 
-Open http://localhost:5173. The top-right pill and the **System status** panel
+Open http://localhost:5173. Press `/` to search the dashboard. The top-right pill and the **System status** panel
 reflect the real result of `GET /api/health` (polled every 30 s; **Recheck**
 forces a check). Stop the backend and recheck to see the offline state.
 
