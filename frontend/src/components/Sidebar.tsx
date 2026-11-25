@@ -16,7 +16,6 @@ import { ROLE_LABEL, type Me } from "../lib/auth/types";
 import { Link } from "../lib/router";
 import { BrandMark } from "./BrandMark";
 import { InstitutionSwitcher } from "./InstitutionSwitcher";
-import { SoonTag } from "./ui/SoonTag";
 
 interface NavItem {
   label: string;
@@ -102,11 +101,10 @@ export function Sidebar({ open, onClose, me, onSwitchInstitution, onLogout }: Si
               <li key={label}>
                 <span
                   aria-disabled="true"
-                  className="flex cursor-not-allowed items-center gap-3 px-3 py-[0.4375rem] text-sm text-ink-subtle"
+                  className="flex cursor-not-allowed items-center gap-3 px-3 py-[0.4375rem] text-sm text-ink-subtle/80"
                 >
                   <Icon className="size-4" aria-hidden="true" />
                   <span className="flex-1">{label}</span>
-                  <SoonTag />
                   <span className="sr-only">(not available yet)</span>
                 </span>
               </li>

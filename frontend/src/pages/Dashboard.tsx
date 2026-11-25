@@ -1,4 +1,4 @@
-import { FlaskConical, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AcademicProgress } from "../components/dashboard/AcademicProgress";
 import { AiAssistantTeaser } from "../components/dashboard/AiAssistantTeaser";
@@ -10,9 +10,10 @@ import { SystemStatus } from "../components/dashboard/SystemStatus";
 import { TodaySchedule } from "../components/dashboard/TodaySchedule";
 import { WelcomeSection } from "../components/dashboard/WelcomeSection";
 import type { DashboardData } from "../data/types";
-import { ROLE_LABEL, type ActiveInstitution, type AuthUser } from "../lib/auth/types";
+import type { ActiveInstitution, AuthUser } from "../lib/auth/types";
 import { daysBetween } from "../lib/dates";
 import { filterDashboard } from "../lib/filterDashboard";
+import { currentOrNextClass } from "../lib/schedule";
 import { subjectLookup } from "../lib/subjects";
 import type { BackendHealth } from "../lib/useBackendHealth";
 
@@ -26,15 +27,22 @@ interface DashboardProps {
   onClearQuery: () => void;
 }
 
+/**
+ * One grid for every screen size. Source order is the phone order (what a
+ * student checks first: next class, then what's due); on desktop, `lg:order`
+ * and column spans arrange the same blocks into two columns.
+ */
 export function Dashboard({ user, institution, data, today, health, query, onClearQuery }: DashboardProps) {
   // Checkbox state is local to this session; nothing is persisted.
   const [assignments, setAssignments] = useState(data.assignments);
   const toggleAssignment = (id: string) =>
     setAssignments((list) => list.map((a) => (a.id === id ? { ...a, done: !a.done } : a)));
 
+  const now = new Date();
   const subjects = useMemo(() => subjectLookup(data.subjects), [data.subjects]);
   const filtered = filterDashboard(data, assignments, query);
   const searching = query.trim() !== "";
+  const upcoming = currentOrNextClass(data.schedule, now);
 
   const dueThisWeek = assignments.filter((a) => {
     const days = daysBetween(today, a.due);
@@ -43,64 +51,45 @@ export function Dashboard({ user, institution, data, today, health, query, onCle
   const featured = data.subjects.find((s) => s.progress < 100);
 
   return (
-    <div className="space-y-6 lg:space-y-8">
-      {searching ? (
-        <div
-          role="status"
-          className="flex items-center justify-between gap-3 border border-accent/30 bg-accent-soft px-4 py-2.5 text-sm"
-        >
+    <div className="space-y-4">
+      {searching && (
+        <div role="status" className="flex items-center justify-between gap-3 border border-accent/30 bg-accent-soft px-4 py-2.5 text-sm">
           <p>
-            <span className="font-semibold">{filtered.total}</span> {filtered.total === 1 ? "match" : "matches"} for
-            “<span className="font-medium">{query.trim()}</span>” on this dashboard
+            <span className="font-semibold">{filtered.total}</span> {filtered.total === 1 ? "match" : "matches"} for “
+            <span className="font-medium">{query.trim()}</span>”
           </p>
           <button
             type="button"
             onClick={onClearQuery}
-            className="inline-flex items-center gap-1 rounded-oc px-2 py-1 text-xs font-medium text-accent hover:bg-surface"
+            className="inline-flex h-9 items-center gap-1 rounded-oc px-2 text-xs font-medium text-accent hover:bg-surface"
           >
             <X className="size-3.5" aria-hidden="true" /> Clear
           </button>
         </div>
-      ) : (
-        <p className="flex items-center gap-2 text-xs text-ink-subtle">
-          <FlaskConical className="size-3.5 shrink-0" aria-hidden="true" />
-          Your account and institution are real. The courses, timetable, assignments and updates below are
-          demonstration data.
-        </p>
       )}
 
-      {!searching && (
-        <>
-          <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
-            <div className="lg:col-span-8 *:h-full">
-              <WelcomeSection
-                firstName={user.full_name.split(" ")[0]}
-                roleLabel={ROLE_LABEL[institution.role]}
-                institutionName={institution.name}
-                today={today}
-                classesToday={data.schedule.length}
-                dueThisWeek={dueThisWeek}
-              />
-            </div>
-            <div className="lg:col-span-4 *:h-full">
-              <AiAssistantTeaser />
-            </div>
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-12 lg:gap-6">
+        {!searching && (
+          <div className="lg:order-1 lg:col-span-8">
+            <WelcomeSection
+              firstName={user.full_name.split(" ")[0]}
+              institutionName={institution.name}
+              today={today}
+              upcoming={upcoming}
+              subject={upcoming ? subjects.get(upcoming.item.subjectId) : undefined}
+              dueThisWeek={dueThisWeek}
+            />
           </div>
-          <QuickActions />
-        </>
-      )}
-
-      <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
-        <div className="lg:col-span-7 *:h-full">
-          <AcademicProgress subjects={filtered.subjects} featured={featured} totalCount={data.subjects.length} query={query} />
+        )}
+        {!searching && (
+          <div className="lg:order-3 lg:col-span-12">
+            <QuickActions />
+          </div>
+        )}
+        <div className="lg:order-4 lg:col-span-5">
+          <TodaySchedule items={filtered.schedule} subjects={subjects} now={now} totalCount={data.schedule.length} query={query} />
         </div>
-        <div className="lg:col-span-5 *:h-full">
-          <TodaySchedule items={filtered.schedule} subjects={subjects} now={new Date()} totalCount={data.schedule.length} query={query} />
-        </div>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
-        <div className="lg:col-span-7 *:h-full">
+        <div className="lg:order-5 lg:col-span-7">
           <AssignmentList
             assignments={filtered.assignments}
             allAssignments={assignments}
@@ -110,19 +99,25 @@ export function Dashboard({ user, institution, data, today, health, query, onCle
             onToggle={toggleAssignment}
           />
         </div>
-        <div className="lg:col-span-5 *:h-full">
+        <div className="lg:order-6 lg:col-span-7">
+          <AcademicProgress subjects={filtered.subjects} featured={featured} totalCount={data.subjects.length} query={query} />
+        </div>
+        <div className="lg:order-7 lg:col-span-5">
           <CampusUpdates updates={filtered.updates} today={today} query={query} />
         </div>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
         {filtered.eventMatches && (
-          <div className="lg:col-span-8 *:h-full">
+          <div className="lg:order-8 lg:col-span-8">
             <CampusEventCard event={data.event} today={today} query={query} />
           </div>
         )}
         {!searching && (
-          <div className="lg:col-span-4 *:h-full">
+          <div className="lg:order-2 lg:col-span-4">
+            <AiAssistantTeaser />
+          </div>
+        )}
+        {/* Developer diagnostics: not shown to students in production builds. */}
+        {import.meta.env.DEV && !searching && (
+          <div className="lg:order-9 lg:col-span-4">
             <SystemStatus health={health} />
           </div>
         )}

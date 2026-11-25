@@ -8,8 +8,8 @@
  */
 :root {
   /* Surfaces — saturated sky, periwinkle sidebar, near-white panels for reading */
-  --oc-canvas: #d9e5fb;
-  --oc-sidebar: #e3e8fc;
+  --oc-canvas: #c8d8f7;
+  --oc-sidebar: #d4ddfa;
   --oc-surface: #f7f9ff;
   --oc-surface-sunken: #cfdaf5;
   --oc-periwinkle: #b9c6f4;
@@ -25,7 +25,10 @@
   /* Accents — used sparingly, each with a job */
   --oc-accent: #3550c8; /* interactive: links, focus, active nav */
   --oc-accent-soft: #d6defb;
-  --oc-signal: #e2683c; /* brand mark, single highlight per view */
+  --oc-signal: #e2683c; /* brand mark, single highlight per view (graphics) */
+  --oc-signal-strong: #c2522a; /* signal behind white text (≥4.6:1) */
+  --oc-hero: #3550c8; /* welcome block */
+  --oc-hero-deep: #2a44b5;
   --oc-success: #17704b;
   --oc-success-soft: #d9efe5;
   --oc-danger: #b83a33;
@@ -61,6 +64,9 @@
   --color-accent: var(--oc-accent);
   --color-accent-soft: var(--oc-accent-soft);
   --color-signal: var(--oc-signal);
+  --color-signal-strong: var(--oc-signal-strong);
+  --color-hero: var(--oc-hero);
+  --color-hero-deep: var(--oc-hero-deep);
   --color-success: var(--oc-success);
   --color-success-soft: var(--oc-success-soft);
   --color-danger: var(--oc-danger);
@@ -108,6 +114,33 @@
   .oc-mark {
     @apply rounded-[2px] bg-lavender text-ink;
     box-shadow: inset 0 -2px 0 var(--oc-accent);
+  }
+
+  /* Welcome block: cobalt with the blueprint grid drawn in white. */
+  .oc-hero {
+    background-color: var(--oc-hero);
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 0.09) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.09) 1px, transparent 1px),
+      linear-gradient(to right, rgb(255 255 255 / 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.04) 1px, transparent 1px),
+      linear-gradient(135deg, var(--oc-hero) 0%, var(--oc-hero-deep) 100%);
+    background-size:
+      96px 96px,
+      96px 96px,
+      24px 24px,
+      24px 24px,
+      100% 100%;
+  }
+
+  /* Horizontal scroller without a visible scrollbar (quick actions on phones). */
+  .oc-scroll-x {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .oc-scroll-x::-webkit-scrollbar {
+    display: none;
   }
 
   /* Blueprint grid over a periwinkle-to-lavender wash: hero surfaces only. */

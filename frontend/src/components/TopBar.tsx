@@ -102,7 +102,7 @@ export function TopBar({ onMenuClick, menuOpen, connection, query, onQueryChange
         <button
           type="button"
           onClick={onMenuClick}
-          className="-ml-1.5 rounded-oc p-1.5 text-ink-muted hover:bg-sunken lg:hidden"
+          className="-ml-1.5 hidden rounded-oc p-1.5 text-ink-muted hover:bg-sunken sm:block lg:hidden"
           aria-label="Open navigation"
           aria-controls="oc-sidebar"
           aria-expanded={menuOpen}
@@ -117,9 +117,12 @@ export function TopBar({ onMenuClick, menuOpen, connection, query, onQueryChange
         {isWide && <div className="max-w-md flex-1">{searchField}</div>}
 
         <div className="ml-auto flex items-center gap-1 sm:gap-2">
-          <span className="hidden md:inline-flex">
-            <ConnectionPill state={connection} />
-          </span>
+          {/* API status is a developer aid; students do not need it. */}
+          {import.meta.env.DEV && (
+            <span className="hidden md:inline-flex">
+              <ConnectionPill state={connection} />
+            </span>
+          )}
           <button
             type="button"
             onClick={() => {
@@ -129,7 +132,7 @@ export function TopBar({ onMenuClick, menuOpen, connection, query, onQueryChange
             }}
             aria-label="Search"
             aria-expanded={searchVisible}
-            className={`grid size-9 place-items-center rounded-oc text-ink-muted hover:bg-sunken sm:hidden ${
+            className={`grid size-10 place-items-center rounded-oc text-ink-muted hover:bg-sunken sm:hidden ${
               searchVisible ? "bg-sunken text-ink" : ""
             }`}
           >
@@ -141,7 +144,7 @@ export function TopBar({ onMenuClick, menuOpen, connection, query, onQueryChange
             disabled
             title="Theme and display settings are not available yet"
             aria-label="Theme and settings (not available yet)"
-            className="grid size-9 cursor-not-allowed place-items-center rounded-oc text-ink-subtle/70"
+            className="hidden size-9 cursor-not-allowed place-items-center rounded-oc text-ink-subtle/70 sm:grid"
           >
             <Palette className="size-[1.125rem]" aria-hidden="true" />
           </button>

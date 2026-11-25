@@ -1,4 +1,4 @@
-import { Clock, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import type { CampusEvent } from "../../data/types";
 import { daysBetween, formatTime } from "../../lib/dates";
 import { Highlight } from "../ui/Highlight";
@@ -12,57 +12,36 @@ interface CampusEventCardProps {
 
 export function CampusEventCard({ event, today, query }: CampusEventCardProps) {
   const month = event.date.toLocaleDateString(undefined, { month: "short" });
-  const weekday = event.date.toLocaleDateString(undefined, { weekday: "long" });
+  const weekday = event.date.toLocaleDateString(undefined, { weekday: "short" });
   const daysAway = daysBetween(today, event.date);
 
   return (
-    <section aria-labelledby="event-title" className="oc-panel grid overflow-hidden border-t-[3px] border-t-signal sm:grid-cols-[1fr_1.1fr]">
-      <div className="flex flex-col px-5 py-5 sm:px-6 sm:py-6">
-        <p className="oc-eyebrow">Upcoming event · in {daysAway} days</p>
-
-        <div className="mt-4 flex items-start gap-4">
+    <section aria-labelledby="event-title" className="oc-panel grid h-full overflow-hidden sm:grid-cols-[1fr_1fr]">
+      <div className="flex flex-col gap-4 p-4 sm:p-5">
+        <div className="flex items-start gap-3">
           <time
             dateTime={event.date.toISOString().slice(0, 10)}
-            className="flex w-14 shrink-0 flex-col items-center border border-ink py-1.5"
+            className="flex w-14 shrink-0 flex-col items-center bg-signal-strong py-1.5 text-white"
           >
             <span className="font-mono text-[0.6875rem] tracking-widest uppercase">{month}</span>
             <span className="font-display text-3xl leading-none font-medium">{event.date.getDate()}</span>
           </time>
-          <div>
-            <h2 id="event-title" className="font-display text-2xl leading-tight font-medium tracking-tight">
+          <div className="min-w-0">
+            <p className="text-[0.6875rem] font-semibold tracking-wide text-signal-strong uppercase">In {daysAway} days</p>
+            <h2 id="event-title" className="font-display text-xl leading-tight font-medium tracking-tight sm:text-2xl">
               <Highlight text={event.title} query={query} />
             </h2>
-            <p className="mt-0.5 text-xs text-ink-subtle">
-              Hosted by <Highlight text={event.host} query={query} />
-            </p>
           </div>
         </div>
-
-        <p className="mt-4 text-sm leading-relaxed text-ink-muted">
+        <p className="text-sm text-ink-muted">
           <Highlight text={event.summary} query={query} />
         </p>
-
-        <dl className="mt-auto grid gap-1.5 pt-5 text-xs text-ink-muted">
-          <div className="flex items-center gap-2">
-            <dt>
-              <Clock className="size-3.5" aria-label="Time" />
-            </dt>
-            <dd>
-              {weekday}, {formatTime(event.start)} – {formatTime(event.end)}
-            </dd>
-          </div>
-          <div className="flex items-center gap-2">
-            <dt>
-              <MapPin className="size-3.5" aria-label="Location" />
-            </dt>
-            <dd>
-              <Highlight text={event.location} query={query} />
-            </dd>
-          </div>
-        </dl>
+        <p className="mt-auto flex items-center gap-1.5 text-xs font-medium text-ink-muted">
+          <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
+          {weekday} {formatTime(event.start)} · <Highlight text={event.location} query={query} />
+        </p>
       </div>
-
-      <div className="oc-blueprint-wash flex items-end justify-center border-t border-line px-4 pt-6 sm:border-t-0 sm:border-l">
+      <div className="oc-blueprint-wash hidden items-end justify-center border-l border-line px-4 pt-6 sm:flex">
         <CampusIllustration className="w-full max-w-xs" />
       </div>
     </section>

@@ -4,30 +4,26 @@ import { toneStyle } from "../../lib/subjects";
 
 interface PanelHeaderProps {
   id: string;
-  index: string;
   title: string;
-  /** Section accent: a top rule, a soft tinted band and a coloured index. */
+  /** Section accent: top rule, tinted band and a coloured marker. */
   tone?: SubjectTone;
-  /** Right-aligned meta content (counts, tags). */
+  /** Right-aligned meta (a count, a tag). Keep it short. */
   aside?: ReactNode;
 }
 
-/** Editorial section heading: index eyebrow, serif title, optional meta. */
-export function PanelHeader({ id, index, title, tone, aside }: PanelHeaderProps) {
+export function PanelHeader({ id, title, tone, aside }: PanelHeaderProps) {
   return (
     <header
       style={tone ? toneStyle(tone) : undefined}
-      className={`flex items-end justify-between gap-4 border-b border-line px-5 pt-4 pb-3 sm:px-6 ${
-        tone ? "border-t-[3px] border-t-(--tone) bg-(--tone)/[0.07]" : ""
+      className={`flex items-center justify-between gap-4 border-b border-line px-4 py-3 sm:px-5 ${
+        tone ? "border-t-4 border-t-(--tone) bg-(--tone)/[0.1]" : ""
       }`}
     >
-      <div>
-        <p className={`oc-eyebrow ${tone ? "text-(--tone)" : ""}`}>{index}</p>
-        <h2 id={id} className="mt-1 font-display text-xl font-medium tracking-tight">
-          {title}
-        </h2>
-      </div>
-      {aside && <div className="pb-0.5">{aside}</div>}
+      <h2 id={id} className="flex items-center gap-2 font-display text-lg font-medium tracking-tight sm:text-xl">
+        {tone && <span className="size-2 rounded-full bg-(--tone)" aria-hidden="true" />}
+        {title}
+      </h2>
+      {aside && <div className="text-xs text-ink-subtle">{aside}</div>}
     </header>
   );
 }

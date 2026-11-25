@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { MobileTabBar } from "../components/MobileTabBar";
 import { Sidebar } from "../components/Sidebar";
 import { TopBar } from "../components/TopBar";
 import type { DashboardData } from "../data/types";
@@ -60,10 +61,11 @@ export function AppShell({ me, health, data, today, query, onQueryChange, childr
           notifications={data.updates.filter((u) => u.important)}
           today={today}
         />
-        <main id="main" className="mx-auto max-w-[78rem] px-4 pt-6 pb-16 sm:px-6 lg:px-10 lg:pt-8">
+        <main id="main" className="mx-auto max-w-[78rem] px-4 pt-4 pb-28 sm:px-6 sm:pt-6 lg:px-10 lg:pt-8 lg:pb-16">
           {children}
         </main>
       </div>
+      <MobileTabBar onMenu={() => setNavOpen(true)} />
     </div>
   );
 }

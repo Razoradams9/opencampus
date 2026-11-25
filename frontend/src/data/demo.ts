@@ -79,7 +79,7 @@ export function createDemoDashboard(today: Date = new Date()): DashboardData {
     event: {
       id: "e1",
       title: "Open Lab Night",
-      summary: "Student teams demo their semester projects across robotics, systems and design. Open to all years.",
+      summary: "Student teams demo their semester projects. Open to all years.",
       date: day(9),
       start: "18:00",
       end: "21:00",

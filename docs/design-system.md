@@ -50,9 +50,30 @@ is for graphics only, never text.
 - `.oc-blueprint` is the architectural motif: a faint 24/96px grid.
   `.oc-blueprint-wash` lays it over a periwinkle→lavender wash; use it only
   for hero surfaces (welcome, event illustration, sign-in panel).
-- Section accents: `PanelHeader tone=…` adds a 3px top rule, a 7% tinted band
-  and a coloured index. Academics = cobalt, timetable = teal,
-  assignments = rose, campus = violet, event = signal.
+- Section accents: `PanelHeader tone=…` adds a 4px top rule, a tinted band and
+  a coloured dot. Progress = cobalt, today = teal, due soon = rose,
+  campus = violet, event = signal. The welcome block is solid cobalt.
+
+## Content density
+
+Students skim on phones. Rules:
+
+- One line of detail per item, at most. Relative dates ("Tomorrow"), not
+  relative + absolute.
+- No label that repeats the heading below it.
+- Mark *exceptions*, not every state: only high priority gets a tag.
+- Unavailable features share one "Coming soon" label per group, not one per item.
+- Developer diagnostics (API status) render only in development builds.
+
+## Mobile first
+
+- Source order is the phone order: welcome (next class + due count) → today →
+  due soon → progress → campus → event → assistant. Desktop rearranges the same
+  grid with `lg:order-*` and column spans.
+- Below 1024px a bottom tab bar (Home, Classes, Tasks, Campus, Menu) jumps to
+  sections and highlights the one in view.
+- Tap targets ≥44px; horizontal rows scroll inside themselves (`.oc-scroll-x`)
+  and grid columns use `minmax(0,1fr)` so they never widen the page.
 - Breakpoints: sidebar is fixed at ≥1024px (`lg`), a drawer below.
 - Motion only for state changes (drawer, spinner); honours
   `prefers-reduced-motion`.

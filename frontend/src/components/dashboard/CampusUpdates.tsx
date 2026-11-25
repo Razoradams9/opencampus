@@ -11,41 +11,37 @@ interface CampusUpdatesProps {
 }
 
 const CATEGORY_STYLE: Record<UpdateCategory, string> = {
-  Academic: "text-accent",
-  Facilities: "text-subject-teal",
-  IT: "text-subject-amber",
-  "Campus life": "text-subject-rose",
+  Academic: "bg-accent-soft text-accent",
+  Facilities: "bg-subject-teal/12 text-subject-teal",
+  IT: "bg-subject-amber/12 text-subject-amber",
+  "Campus life": "bg-subject-rose/12 text-subject-rose",
 };
 
+/** Headlines only: one line each, the detail belongs on a future update page. */
 export function CampusUpdates({ updates, today, query }: CampusUpdatesProps) {
   return (
-    <section aria-labelledby="updates-title" className="oc-panel flex flex-col">
-      <PanelHeader id="updates-title" index="Campus" title="Campus updates" tone="violet" />
+    <section id="campus" aria-labelledby="updates-title" className="oc-panel flex h-full scroll-mt-24 flex-col">
+      <PanelHeader id="updates-title" title="Campus" tone="violet" />
 
       {updates.length === 0 ? (
         <NoMatches what="updates" />
       ) : (
         <ul className="divide-y divide-line">
           {updates.map((u) => (
-            <li key={u.id} className={`relative px-5 py-4 sm:px-6 ${u.important ? "bg-lavender/45" : ""}`}>
-              {u.important && <span className="absolute inset-y-0 left-0 w-[3px] bg-subject-violet" aria-hidden="true" />}
-              <article>
-                <div className="flex items-center justify-between gap-3">
-                  <p className={`font-mono text-[0.6875rem] font-medium tracking-[0.08em] uppercase ${CATEGORY_STYLE[u.category]}`}>
-                    <Highlight text={u.category} query={query} />
-                    {u.important && <span className="ml-2 text-ink">· Important</span>}
-                  </p>
-                  <time dateTime={u.date.toISOString().slice(0, 10)} className="shrink-0 font-mono text-xs text-ink-subtle">
-                    {formatRelativeDay(u.date, today)}
-                  </time>
-                </div>
-                <h3 className="mt-1.5 text-sm font-semibold">
-                  <Highlight text={u.title} query={query} />
-                </h3>
-                <p className="mt-0.5 text-sm leading-relaxed text-ink-muted">
-                  <Highlight text={u.body} query={query} />
-                </p>
-              </article>
+            <li key={u.id} className="relative px-4 py-3 sm:px-5">
+              {u.important && <span className="absolute inset-y-0 left-0 w-1 bg-subject-violet" aria-hidden="true" />}
+              <div className="flex items-center gap-2 text-[0.6875rem]">
+                <span className={`px-1.5 py-px font-medium ${CATEGORY_STYLE[u.category]}`}>
+                  <Highlight text={u.category} query={query} />
+                </span>
+                {u.important && <span className="font-semibold text-subject-violet">Important</span>}
+                <time dateTime={u.date.toISOString().slice(0, 10)} className="ml-auto font-mono text-ink-subtle">
+                  {formatRelativeDay(u.date, today)}
+                </time>
+              </div>
+              <h3 className="mt-1.5 text-[0.9375rem] leading-snug font-medium">
+                <Highlight text={u.title} query={query} />
+              </h3>
             </li>
           ))}
         </ul>

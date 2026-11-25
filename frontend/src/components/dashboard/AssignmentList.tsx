@@ -1,6 +1,6 @@
 import { Check } from "lucide-react";
-import type { Assignment, Priority, Subject } from "../../data/types";
-import { formatDueLabel, formatShortDate, daysBetween } from "../../lib/dates";
+import type { Assignment, Subject } from "../../data/types";
+import { daysBetween } from "../../lib/dates";
 import { toneStyle } from "../../lib/subjects";
 import { Highlight } from "../ui/Highlight";
 import { NoMatches } from "../ui/NoMatches";
@@ -16,39 +16,24 @@ interface AssignmentListProps {
   onToggle: (id: string) => void;
 }
 
-// Priority is shown as text and a bar pattern, never colour alone.
-const PRIORITY: Record<Priority, { label: string; bars: number; tone: string }> = {
-  high: { label: "High", bars: 3, tone: "bg-danger" },
-  medium: { label: "Medium", bars: 2, tone: "bg-pending" },
-  low: { label: "Low", bars: 1, tone: "bg-ink-subtle" },
-};
-
-function PriorityIndicator({ priority }: { priority: Priority }) {
-  const p = PRIORITY[priority];
-  return (
-    <span className="inline-flex items-center gap-1.5 text-[0.6875rem] text-ink-muted">
-      <span className="flex items-end gap-px" aria-hidden="true">
-        {[1, 2, 3].map((n) => (
-          <span key={n} className={`w-[3px] ${n <= p.bars ? p.tone : "bg-line-strong"}`} style={{ height: `${4 + n * 3}px` }} />
-        ))}
-      </span>
-      {p.label}
-    </span>
-  );
+function dueLabel(days: number): string {
+  if (days < 0) return "Overdue";
+  if (days === 0) return "Today";
+  if (days === 1) return "Tomorrow";
+  return `${days} days`;
 }
 
 export function AssignmentList({ assignments, allAssignments, subjects, today, query, onToggle }: AssignmentListProps) {
   const done = allAssignments.filter((a) => a.done).length;
 
   return (
-    <section aria-labelledby="assignments-title" className="oc-panel flex flex-col">
+    <section id="tasks" aria-labelledby="assignments-title" className="oc-panel flex h-full scroll-mt-24 flex-col">
       <PanelHeader
         id="assignments-title"
-        index="Assignments"
         title="Due soon"
         tone="rose"
         aside={
-          <span className="font-mono text-xs text-ink-subtle" aria-live="polite">
+          <span className="font-mono" aria-live="polite">
             {done}/{allAssignments.length} done
           </span>
         }
@@ -67,45 +52,40 @@ export function AssignmentList({ assignments, allAssignments, subjects, today, q
               <li key={a.id} style={subject ? toneStyle(subject.tone) : undefined}>
                 <label
                   htmlFor={inputId}
-                  className="group grid cursor-pointer grid-cols-[auto_1fr_auto] items-start gap-x-3 px-5 py-3.5 transition-colors hover:bg-sunken/50 sm:px-6"
+                  className="group grid min-h-14 cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-x-3 px-4 py-2.5 transition-colors hover:bg-(--tone)/[0.06] sm:px-5"
                 >
-                  <input
-                    id={inputId}
-                    type="checkbox"
-                    checked={a.done}
-                    onChange={() => onToggle(a.id)}
-                    className="peer sr-only"
-                  />
-                  {/* Custom checkbox; focus ring follows the real (visually hidden) input */}
+                  <input id={inputId} type="checkbox" checked={a.done} onChange={() => onToggle(a.id)} className="peer sr-only" />
+                  {/* 24px box inside a ≥44px row: comfortable to tap. */}
                   <span
-                    className={`mt-0.5 grid size-[1.125rem] place-items-center border-[1.5px] transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent ${
-                      a.done ? "border-success bg-success text-surface" : "border-line-strong bg-surface group-hover:border-ink-subtle"
+                    className={`grid size-6 place-items-center border-2 transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent ${
+                      a.done ? "border-success bg-success text-white" : "border-line-strong bg-surface group-hover:border-(--tone)"
                     }`}
                     aria-hidden="true"
                   >
-                    {a.done && <Check className="size-3" strokeWidth={3} />}
+                    {a.done && <Check className="size-3.5" strokeWidth={3} />}
                   </span>
 
                   <span className="min-w-0">
-                    <span className={`block text-sm font-medium ${a.done ? "text-ink-subtle line-through" : "text-ink"}`}>
+                    <span className={`block truncate text-[0.9375rem] font-medium ${a.done ? "text-ink-subtle line-through" : "text-ink"}`}>
                       <Highlight text={a.title} query={query} />
                     </span>
-                    <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-subtle">
-                      <span className="inline-flex items-center gap-1.5">
-                        <span className="size-1.5 bg-(--tone)" aria-hidden="true" />
-                        <span className="font-mono">{subject?.code}</span>
+                    <span className="mt-0.5 flex items-center gap-2 text-xs text-ink-subtle">
+                      <span className="inline-flex items-center gap-1.5 font-mono">
+                        <span className="size-2 rounded-full bg-(--tone)" aria-hidden="true" />
+                        {subject?.code}
                       </span>
-                      <PriorityIndicator priority={a.priority} />
+                      {a.priority === "high" && !a.done ? (
+                        <span className="bg-danger-soft px-1.5 py-px font-medium text-danger">High priority</span>
+                      ) : (
+                        <span className="sr-only">{a.priority} priority</span>
+                      )}
                     </span>
                   </span>
 
-                  <span className="text-right text-xs">
-                    <span className={`block font-medium ${a.done ? "text-success" : urgent ? "text-danger" : "text-ink-muted"}`}>
-                      {a.done ? "Completed" : formatDueLabel(a.due, today)}
-                    </span>
-                    <time dateTime={a.due.toISOString().slice(0, 10)} className="font-mono text-ink-subtle">
-                      {formatShortDate(a.due)}
-                    </time>
+                  <span
+                    className={`text-right text-xs font-semibold ${a.done ? "text-success" : urgent ? "text-danger" : "text-ink-muted"}`}
+                  >
+                    <time dateTime={a.due.toISOString().slice(0, 10)}>{a.done ? "Done" : dueLabel(days)}</time>
                   </span>
                 </label>
               </li>

@@ -23,13 +23,12 @@ export function filterDashboard(
   };
 
   const subjects = data.subjects.filter((s) => matches(query, s.code, s.name, s.nextLesson));
-  const schedule = data.schedule.filter((c) =>
-    matches(query, subjectText(c.subjectId), c.kind, c.room, c.building, c.instructor),
-  );
+  // Only fields that are visible on screen are searched.
+  const schedule = data.schedule.filter((c) => matches(query, subjectText(c.subjectId), c.kind, c.room));
   const filteredAssignments = assignments.filter((a) => matches(query, a.title, subjectText(a.subjectId)));
-  const updates = data.updates.filter((u) => matches(query, u.title, u.body, u.category));
+  const updates = data.updates.filter((u) => matches(query, u.title, u.category));
   const e = data.event;
-  const eventMatches = matches(query, e.title, e.summary, e.location, e.host);
+  const eventMatches = matches(query, e.title, e.summary, e.location);
 
   return {
     subjects,
