@@ -7,6 +7,8 @@ The app connects as the non-owner role, so RLS is genuinely exercised.
 
 import os
 import secrets
+import tempfile
+import time
 
 import pytest
 
@@ -27,6 +29,12 @@ os.environ["OPENCAMPUS_DATABASE_URL"] = TEST_DATABASE_URL
 os.environ["OPENCAMPUS_JWT_SECRET"] = secrets.token_urlsafe(48)  # fresh per run, never hardcoded
 os.environ["OPENCAMPUS_RATE_LIMIT_SECRET"] = secrets.token_urlsafe(48)
 os.environ.pop("OPENCAMPUS_TRUSTED_PROXIES", None)  # tests set proxies explicitly where needed
+# Email: always the development sink in a throwaway directory; never real SMTP.
+for _name in [n for n in os.environ if n.startswith("OPENCAMPUS_SMTP_")]:
+    os.environ.pop(_name)
+os.environ["OPENCAMPUS_EMAIL_MODE"] = "dev_file"
+os.environ["OPENCAMPUS_EMAIL_DEV_DIR"] = tempfile.mkdtemp(prefix="opencampus-test-mail-")
+os.environ["OPENCAMPUS_FRONTEND_URL"] = "http://localhost:5173"
 os.environ["OPENCAMPUS_ENV"] = "test"
 os.environ["OPENCAMPUS_COOKIE_SECURE"] = "true"  # production-like cookies
 
@@ -37,7 +45,7 @@ from sqlalchemy import create_engine, text  # noqa: E402
 
 from app.main import create_app  # noqa: E402
 
-TABLES = "rate_limit_buckets, refresh_tokens, auth_sessions, memberships, users, institutions"
+TABLES = "password_reset_tokens, rate_limit_buckets, refresh_tokens, auth_sessions, memberships, users, institutions"
 
 
 @pytest.fixture(scope="session")
@@ -56,6 +64,18 @@ def clean_db(owner_engine):
     with owner_engine.begin() as conn:
         conn.execute(text(f"TRUNCATE {TABLES} CASCADE"))
     yield
+
+
+@pytest.fixture
+def clear_of_window_edge(owner_engine):
+    """Rate-limit windows are aligned to whole minutes of *database* time. A
+    test that straddles a boundary would see its counters reset mid-test, so
+    start only when at least 10 s remain in the current minute. (Every 15-min
+    and hourly boundary is also a minute boundary.)"""
+    with owner_engine.connect() as conn:
+        seconds = conn.execute(text("SELECT extract(second FROM clock_timestamp())::float8")).scalar_one()
+    if seconds > 50:
+        time.sleep(60 - seconds + 0.2)
 
 
 @pytest.fixture

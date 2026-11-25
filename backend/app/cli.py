@@ -3,6 +3,7 @@
     python -m app.cli create-platform-admin --email ops@example.org --name "Ops"
     python -m app.cli seed-demo
     python -m app.cli purge-rate-limits
+    python -m app.cli dev-mail              # show the newest development email
 
 Passwords are read from OPENCAMPUS_CLI_PASSWORD if set, otherwise prompted.
 """
@@ -103,10 +104,20 @@ def main() -> None:
     admin.add_argument("--name", required=True)
     commands.add_parser("seed-demo", help="create fictional demo institutions and users")
     commands.add_parser("purge-rate-limits", help="delete expired rate-limit counters")
+    commands.add_parser("dev-mail", help="print the newest email from the development sink")
     args = parser.parse_args()
 
     if args.command == "create-platform-admin":
         create_platform_admin(args.email, args.name)
+    elif args.command == "dev-mail":
+        from app.core.config import get_settings
+
+        settings = get_settings()
+        files = sorted(settings.email_dev_dir.glob("*.eml")) if settings.email_dev_dir.is_dir() else []
+        if not files:
+            sys.exit(f"No development emails in {settings.email_dev_dir}")
+        print(f"# {files[-1]}\n")
+        print(files[-1].read_text())
     elif args.command == "purge-rate-limits":
         from app.core.config import get_settings
         from app.services.rate_limit import get_rate_limiter

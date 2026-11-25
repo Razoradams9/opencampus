@@ -43,6 +43,27 @@ class LoginGuard:
         self._limiter.clear(self._account_buckets)
 
 
+def guard_reset_request(request: Request, settings: Settings, email: str) -> None:
+    """Per IP and per email. The email bucket counts every request whether or
+    not the account exists, so limits never reveal registration."""
+    limiter = get_rate_limiter(settings)
+    limiter.hit(
+        limiter.buckets(settings.rl_reset_request_ip, _ip(request, settings))
+        + limiter.buckets(settings.rl_reset_request_account, normalise_email(email))
+    )
+
+
+def guard_reset_confirm(request: Request, settings: Settings) -> None:
+    limiter = get_rate_limiter(settings)
+    limiter.hit(limiter.buckets(settings.rl_reset_confirm_ip, _ip(request, settings)))
+
+
+def clear_login_failures(settings: Settings, email: str) -> None:
+    """After a successful reset, let the owner sign in immediately."""
+    limiter = get_rate_limiter(settings)
+    limiter.clear(limiter.buckets(settings.rl_login_account, normalise_email(email)))
+
+
 def guard_register(request: Request, settings: Settings) -> None:
     limiter = get_rate_limiter(settings)
     limiter.hit(limiter.buckets(settings.rl_register_ip, _ip(request, settings)))

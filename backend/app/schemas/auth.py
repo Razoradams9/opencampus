@@ -39,6 +39,19 @@ class LoginRequest(StrictModel):
     institution_slug: str | None = Field(default=None, max_length=63)
 
 
+class PasswordResetRequest(StrictModel):
+    email: EmailStr
+
+
+class PasswordResetConfirm(StrictModel):
+    token: str = Field(min_length=20, max_length=200)
+    new_password: str = Field(min_length=PASSWORD_MIN, max_length=PASSWORD_MAX)
+
+
+class MessageResponse(BaseModel):
+    message: str
+
+
 class SwitchInstitutionRequest(StrictModel):
     institution_id: uuid.UUID
 

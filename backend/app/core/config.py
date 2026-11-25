@@ -7,11 +7,13 @@ to start without them rather than falling back to something insecure.
 
 import ipaddress
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
+from urllib.parse import urlsplit
 
 ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
+DEV_MAIL_DIR = Path(__file__).resolve().parents[2] / ".dev-mail"
 
 
 class ConfigError(RuntimeError):
@@ -71,6 +73,9 @@ DEFAULT_RATE_LIMITS = {
     "register_ip": "3/3600",
     "refresh_session": "30/60,120/3600",
     "refresh_ip": "120/60,1200/3600",  # generous: many students can share one NAT address
+    "reset_request_ip": "5/900,20/3600",
+    "reset_request_account": "3/3600",  # per email, counted whether or not the account exists
+    "reset_confirm_ip": "10/900,30/3600",
 }
 
 
@@ -126,6 +131,21 @@ class Settings:
     rl_register_ip: tuple[RateLimitPolicy, ...]
     rl_refresh_session: tuple[RateLimitPolicy, ...]
     rl_refresh_ip: tuple[RateLimitPolicy, ...]
+    rl_reset_request_ip: tuple[RateLimitPolicy, ...]
+    rl_reset_request_account: tuple[RateLimitPolicy, ...]
+    rl_reset_confirm_ip: tuple[RateLimitPolicy, ...]
+
+    # Password recovery and email
+    frontend_url: str
+    password_reset_ttl: int
+    email_mode: str  # "dev_file" | "smtp"
+    email_from: str
+    email_dev_dir: Path
+    smtp_host: str
+    smtp_port: int
+    smtp_username: str
+    smtp_password: str = field(repr=False, default="")  # never printed with the settings
+    smtp_tls: str = "starttls"  # "starttls" | "ssl" | "none"
 
     @property
     def is_production(self) -> bool:
@@ -179,7 +199,73 @@ def build_settings() -> Settings:
         rl_register_ip=_policies("register_ip"),
         rl_refresh_session=_policies("refresh_session"),
         rl_refresh_ip=_policies("refresh_ip"),
+        rl_reset_request_ip=_policies("reset_request_ip"),
+        rl_reset_request_account=_policies("reset_request_account"),
+        rl_reset_confirm_ip=_policies("reset_confirm_ip"),
+        frontend_url=_frontend_url(environment),
+        password_reset_ttl=_int("OPENCAMPUS_PASSWORD_RESET_TTL_SECONDS", 30 * 60),
+        **_email(environment),
     )
+
+
+def _frontend_url(environment: str) -> str:
+    raw = os.getenv("OPENCAMPUS_FRONTEND_URL", "" if environment == "production" else "http://localhost:5173").strip()
+    if not raw:
+        raise ConfigError("OPENCAMPUS_FRONTEND_URL must be set in production (used to build password-reset links)")
+    parts = urlsplit(raw)
+    if parts.scheme not in {"http", "https"} or not parts.hostname or parts.query or parts.fragment:
+        raise ConfigError("OPENCAMPUS_FRONTEND_URL must be an absolute http(s) URL without query or fragment")
+    if environment == "production" and parts.scheme != "https":
+        raise ConfigError("OPENCAMPUS_FRONTEND_URL must use https in production")
+    return raw.rstrip("/")
+
+
+def _email(environment: str) -> dict:
+    """Email delivery settings. Development defaults to a local file sink;
+    production must use SMTP with TLS and can never fall back to the sink."""
+    smtp_host = os.getenv("OPENCAMPUS_SMTP_HOST", "").strip()
+    default_mode = "smtp" if smtp_host or environment == "production" else "dev_file"
+    mode = os.getenv("OPENCAMPUS_EMAIL_MODE", default_mode).strip().lower()
+    if mode not in {"dev_file", "smtp"}:
+        raise ConfigError("OPENCAMPUS_EMAIL_MODE must be 'dev_file' or 'smtp'")
+    if mode == "dev_file" and environment == "production":
+        raise ConfigError("OPENCAMPUS_EMAIL_MODE=dev_file is not allowed in production")
+
+    tls = os.getenv("OPENCAMPUS_SMTP_TLS", "starttls").strip().lower()
+    if tls not in {"starttls", "ssl", "none"}:
+        raise ConfigError("OPENCAMPUS_SMTP_TLS must be 'starttls', 'ssl' or 'none'")
+    try:
+        port = int(os.getenv("OPENCAMPUS_SMTP_PORT", "465" if tls == "ssl" else "587"))
+    except ValueError:
+        raise ConfigError("OPENCAMPUS_SMTP_PORT must be a number") from None
+    if not 0 < port < 65536:
+        raise ConfigError("OPENCAMPUS_SMTP_PORT must be between 1 and 65535")
+
+    email_from = os.getenv("OPENCAMPUS_EMAIL_FROM", "" if mode == "smtp" else "OpenCampus <no-reply@localhost>").strip()
+    username = os.getenv("OPENCAMPUS_SMTP_USERNAME", "").strip()
+    password = os.getenv("OPENCAMPUS_SMTP_PASSWORD", "")
+    if mode == "smtp":
+        if not smtp_host:
+            raise ConfigError("OPENCAMPUS_SMTP_HOST is required when OPENCAMPUS_EMAIL_MODE=smtp")
+        if not email_from:
+            raise ConfigError("OPENCAMPUS_EMAIL_FROM is required when OPENCAMPUS_EMAIL_MODE=smtp")
+        if environment == "production" and tls == "none":
+            raise ConfigError("OPENCAMPUS_SMTP_TLS=none is not allowed in production")
+        if bool(username) != bool(password):
+            raise ConfigError("Set both OPENCAMPUS_SMTP_USERNAME and OPENCAMPUS_SMTP_PASSWORD, or neither")
+        if password and tls == "none":
+            raise ConfigError("Refusing to send SMTP credentials without TLS (OPENCAMPUS_SMTP_TLS=none)")
+
+    return {
+        "email_mode": mode,
+        "email_from": email_from,
+        "email_dev_dir": Path(os.getenv("OPENCAMPUS_EMAIL_DEV_DIR", str(DEV_MAIL_DIR))),
+        "smtp_host": smtp_host,
+        "smtp_port": port,
+        "smtp_username": username,
+        "smtp_password": password,
+        "smtp_tls": tls,
+    }
 
 
 @lru_cache

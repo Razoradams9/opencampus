@@ -17,3 +17,6 @@ dist/
 .DS_Store
 .idea/
 .vscode/
+
+# Development email sink (password-reset links)
+.dev-mail/

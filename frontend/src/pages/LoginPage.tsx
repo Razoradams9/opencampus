@@ -41,7 +41,14 @@ export function LoginPage() {
       <form onSubmit={onSubmit} className="space-y-5" noValidate={false}>
         <FormError message={error} />
         <Field id="email" name="email" type="email" label="Email" autoComplete="email" required autoFocus />
-        <Field id="password" name="password" type="password" label="Password" autoComplete="current-password" required />
+        <div>
+          <Field id="password" name="password" type="password" label="Password" autoComplete="current-password" required />
+          <p className="mt-2 text-right text-sm">
+            <Link to="/forgot-password" className="font-medium text-accent underline-offset-4 hover:underline">
+              Forgot password?
+            </Link>
+          </p>
+        </div>
         <SubmitButton busy={busy}>{busy ? "Signing in…" : "Sign in"}</SubmitButton>
       </form>
 

@@ -237,6 +237,71 @@ Rationale and trade-offs:
   limit too low for a shared IP; 503 means the rate-limit store is failing and
   sign-in is down.
 
+## Password recovery (M3.2)
+
+### Lifecycle
+
+1. `POST /api/auth/password-reset/request {email}` → always `202` with the
+   same message. Rate limited per IP (5/15 min, 20/hour) and per email
+   (3/hour, counted whether or not the account exists).
+2. For an **active** account only: earlier unused tokens are deleted, a new
+   token is created (32 bytes from the OS CSPRNG, URL-safe), and only its
+   SHA-256 hash is stored with a 30-minute expiry (`password_reset_tokens`).
+3. The email is sent as a background task **after** the response, so SMTP
+   latency cannot reveal whether the account exists. Delivery failures are
+   logged by exception type only, never with the link.
+4. The link is `OPENCAMPUS_FRONTEND_URL/reset-password#token=…`. The token is in
+   the **fragment**: browsers never send it to servers, proxies, access logs or
+   in `Referer`. The page reads it and immediately removes it from the
+   address bar and history.
+5. `POST /api/auth/password-reset/confirm {token, new_password}` (rate limited
+   per IP, 10/15 min, 30/hour; password policy as registration, 12–128 chars).
+   In **one transaction**:
+   - `UPDATE … SET used_at = now() WHERE token_hash = :h AND used_at IS NULL AND expires_at > now() RETURNING user_id`:
+     a single statement, so concurrent confirmations race on the row and
+     exactly one wins (tested with 6 at once);
+   - new Argon2id hash for *that* user (the user comes only from the token row);
+   - remaining unused tokens deleted;
+   - **every session revoked** (`revoke_reason = password_reset`), which kills
+     all refresh tokens and, because access tokens are checked against their
+     session, all access tokens immediately.
+   Any failure rolls all of it back. Afterwards the account's login-failure
+   counters are cleared and this browser's auth cookies are deleted; the
+   user must sign in with the new password.
+6. Invalid, expired and used tokens all return `400 reset_token_invalid`.
+
+Token lookup is by hash through a unique index; the attacker never controls
+the stored value, so comparison timing reveals nothing useful. Raw tokens
+exist only in the email and the user's browser.
+
+### Email delivery
+
+- `dev_file` (development default): each email is written as an `.eml` file
+  to `backend/.dev-mail/`; the log records only the recipient's domain and the
+  file path. `python -m app.cli dev-mail` prints the newest. **Refused at
+  startup when `OPENCAMPUS_ENV=production`.**
+- `smtp`: Python's standard `smtplib`, no extra dependency. `starttls`
+  (default) or `ssl`, with certificate and hostname verification
+  (`ssl.create_default_context()`). `none` is only for local relays and is
+  refused in production or when credentials are set. Host, port, username,
+  password and sender come from environment variables; the password is
+  excluded from the settings' `repr` and never logged.
+- Production also requires `OPENCAMPUS_FRONTEND_URL` with `https`. Links are
+  never built from `Host`/`X-Forwarded-Host` (tested).
+
+### Limitations
+
+- Possession of the mailbox is the only factor: anyone who controls the
+  user's email can reset the password (standard for email recovery; MFA would
+  address it).
+- Small timing difference remains between existing and unknown accounts (one
+  extra insert on the request path); delivery itself is off the request path.
+- Delivery is in-process: if the API process stops right after responding,
+  that email is lost (the user can request again). A persistent mail queue
+  would fix this.
+- The per-email request limit means an attacker can use up a victim's 3
+  reset emails per hour (the victim can still sign in normally).
+
 ## Known gaps (not yet implemented)
 
 - Rate limits are fixed-window (see above); no CAPTCHA or device trust yet.

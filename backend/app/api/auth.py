@@ -1,21 +1,34 @@
 import uuid
 
-from fastapi import APIRouter, Depends, Request, Response, status
+from fastapi.responses import JSONResponse
+
+from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response, status
 
 from app.api.deps import AppSettings, CurrentPrincipal, DbSession, verify_csrf
-from app.api.rate_limits import LoginGuard, guard_refresh, guard_register
+from app.api.rate_limits import (
+    LoginGuard,
+    clear_login_failures,
+    guard_refresh,
+    guard_register,
+    guard_reset_confirm,
+    guard_reset_request,
+)
 from app.core.config import Settings
 from app.core.errors import ApiError
 from app.core.security import new_opaque_token
 from app.schemas.auth import (
     LoginRequest,
     MeResponse,
+    MessageResponse,
+    PasswordResetConfirm,
+    PasswordResetRequest,
     RegisterRequest,
     SessionOut,
     SwitchInstitutionRequest,
     TokenResponse,
 )
 from app.services import auth as auth_service
+from app.services import password_reset
 from app.services.auth import IssuedTokens
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -89,6 +102,29 @@ def logout(request: Request, db: DbSession, settings: AppSettings) -> Response:
     auth_service.logout(db, request.cookies.get(settings.refresh_cookie_name))
     response = Response(status_code=status.HTTP_204_NO_CONTENT)
     _clear_auth_cookies(response, settings)
+    return response
+
+
+@router.post("/password-reset/request", status_code=status.HTTP_202_ACCEPTED, response_model=MessageResponse)
+def request_password_reset(
+    body: PasswordResetRequest, request: Request, background: BackgroundTasks, db: DbSession, settings: AppSettings
+):
+    guard_reset_request(request, settings, body.email)
+    pending = password_reset.request_reset(db, settings, body.email)
+    if pending is not None:
+        # Sent after the response, so SMTP latency cannot reveal that the account exists.
+        background.add_task(password_reset.deliver_reset_email, settings, pending)
+    return MessageResponse(message=password_reset.GENERIC_REQUEST_MESSAGE)
+
+
+@router.post("/password-reset/confirm", response_model=MessageResponse)
+def confirm_password_reset(body: PasswordResetConfirm, request: Request, db: DbSession, settings: AppSettings) -> Response:
+    guard_reset_confirm(request, settings)
+    user_id = password_reset.confirm_reset(db, body.token, body.new_password)
+    clear_login_failures(settings, password_reset.email_for_user(db, user_id))
+    response = JSONResponse({"message": "Your password has been changed. Please sign in with your new password."})
+    _clear_auth_cookies(response, settings)  # this browser's session (if any) was revoked too
+    response.headers["Cache-Control"] = "no-store"
     return response
 
 

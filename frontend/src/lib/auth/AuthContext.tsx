@@ -12,6 +12,8 @@ interface AuthContextValue {
   register: (input: RegisterInput) => Promise<void>;
   logout: () => Promise<void>;
   switchInstitution: (institutionId: string) => Promise<void>;
+  /** Drop local auth state after the server revoked the session (e.g. password reset). */
+  forgetSession: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -69,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           signOutLocally();
         }
       },
+      forgetSession: signOutLocally,
       switchInstitution: async (institutionId) => {
         try {
           setMe(await authRequest<Me>("/api/auth/switch-institution", { method: "POST", body: { institution_id: institutionId } }));

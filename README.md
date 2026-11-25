@@ -155,6 +155,20 @@ npm run dev
 Open http://localhost:5173 and sign in or create an account (institution code
 `aldermoor` or `halvard` after seeding). API docs: http://127.0.0.1:8000/docs
 
+### Password reset emails in development
+
+With no SMTP configured, emails are written to `backend\.dev-mail\` instead
+of being sent (git-ignored). After "Forgot password?", show the newest one:
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m app.cli dev-mail
+```
+
+Copy the `http://localhost:5173/reset-password#token=…` link into the
+browser. `.eml` files also open in Outlook or any text editor. For production
+SMTP settings see `backend/.env.example` and `docs/security.md`.
+
 ## Migrations
 
 ```bash

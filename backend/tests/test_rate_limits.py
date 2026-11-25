@@ -23,6 +23,9 @@ from app.models import AuthSession, MembershipRole, RateLimitBucket, RefreshToke
 from app.services.rate_limit import RateLimiter
 from tests.helpers import PASSWORD, bearer, csrf_headers, make_institution, make_user
 
+# Counter-based assertions must not straddle a rate-limit window boundary.
+pytestmark = pytest.mark.usefixtures("clear_of_window_edge")
+
 BASE_URL = "https://testserver"
 WRONG = "definitely not the password"
 
