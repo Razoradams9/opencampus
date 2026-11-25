@@ -12,6 +12,24 @@ Open-source, multi-tenant academic platform. **Current milestone: M2 — Identit
 No AI, coursework or faculty/admin dashboards exist yet. Security design:
 [`docs/security.md`](docs/security.md).
 
+## Quick start (Windows)
+
+You need **Python 3.11+**, **Node.js 20.19+** and **Docker Desktop** installed
+(the script tells you how if one is missing).
+
+1. Double-click **`Start OpenCampus.cmd`** in the project folder.
+2. Wait. The first run sets everything up (a few minutes) and asks whether
+   to create demo accounts. Later runs take seconds.
+3. Your browser opens http://localhost:5173.
+
+To stop: double-click **`Stop OpenCampus.cmd`**. Your data is kept.
+
+The script is safe to run again at any time: it creates `backend\.env` with
+fresh secrets only if it doesn't exist, installs packages only when they
+change, applies new database migrations, and opens the API and website in
+their own windows. The manual steps below remain for other platforms or if
+you want full control.
+
 ## Stack
 
 | Layer    | Technology                                                       |

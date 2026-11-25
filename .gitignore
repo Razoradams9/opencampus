@@ -20,3 +20,7 @@ dist/
 
 # Development email sink (password-reset links)
 .dev-mail/
+
+# Created by scripts/start.ps1 after the first-run demo prompt
+backend/.demo-seeded
+backend/.run-pids

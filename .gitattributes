@@ -1,2 +1,5 @@
 # Shell scripts run inside Linux containers: keep LF even on Windows checkouts.
 *.sh text eol=lf
+# Windows launchers: keep CRLF so cmd.exe and PowerShell 5.1 read them reliably.
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
