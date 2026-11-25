@@ -104,7 +104,7 @@ Desktop for Postgres. From the repository root:
 ```powershell
 cd backend
 $gen = { python -c "import secrets;print(secrets.token_urlsafe(32))" }
-$su = & $gen; $own = & $gen; $app = & $gen; $jwt = & $gen
+$su = & $gen; $own = & $gen; $app = & $gen; $jwt = & $gen; $rl = & $gen
 @"
 OPENCAMPUS_ENV=development
 OPENCAMPUS_DB_SUPERUSER_PASSWORD=$su
@@ -115,6 +115,7 @@ OPENCAMPUS_MIGRATION_DATABASE_URL=postgresql+psycopg://opencampus_owner:$own@127
 OPENCAMPUS_TEST_DATABASE_URL=postgresql+psycopg://opencampus_app:$app@127.0.0.1:5432/opencampus_test
 OPENCAMPUS_TEST_MIGRATION_DATABASE_URL=postgresql+psycopg://opencampus_owner:$own@127.0.0.1:5432/opencampus_test
 OPENCAMPUS_JWT_SECRET=$jwt
+OPENCAMPUS_RATE_LIMIT_SECRET=$rl
 OPENCAMPUS_COOKIE_SECURE=false
 "@ | Set-Content -Encoding ascii .env
 cd ..
@@ -126,7 +127,7 @@ Set-ExecutionPolicy -Scope Process Bypass
 pip install -r requirements-dev.txt
 alembic upgrade head
 python -m app.cli seed-demo
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload --port 8000 --no-proxy-headers
 ```
 
 Second PowerShell window, from the repository root:
@@ -142,7 +143,7 @@ npm run dev
 ```bash
 # Terminal 1 — API on http://127.0.0.1:8000
 cd backend && source .venv/bin/activate
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload --port 8000 --no-proxy-headers
 ```
 
 ```bash
@@ -199,5 +200,5 @@ cd frontend && npm run build    # type-check + production build
 ## Configuration
 
 See `backend/.env.example` for every variable. Required: `OPENCAMPUS_DATABASE_URL`,
-`OPENCAMPUS_JWT_SECRET` (≥ 32 chars). The API refuses to start without them,
+`OPENCAMPUS_JWT_SECRET` and `OPENCAMPUS_RATE_LIMIT_SECRET` (each ≥ 32 chars, different). The API refuses to start without them,
 and refuses insecure cookies when `OPENCAMPUS_ENV=production`.

@@ -2,6 +2,7 @@
 
     python -m app.cli create-platform-admin --email ops@example.org --name "Ops"
     python -m app.cli seed-demo
+    python -m app.cli purge-rate-limits
 
 Passwords are read from OPENCAMPUS_CLI_PASSWORD if set, otherwise prompted.
 """
@@ -101,10 +102,16 @@ def main() -> None:
     admin.add_argument("--email", required=True)
     admin.add_argument("--name", required=True)
     commands.add_parser("seed-demo", help="create fictional demo institutions and users")
+    commands.add_parser("purge-rate-limits", help="delete expired rate-limit counters")
     args = parser.parse_args()
 
     if args.command == "create-platform-admin":
         create_platform_admin(args.email, args.name)
+    elif args.command == "purge-rate-limits":
+        from app.core.config import get_settings
+        from app.services.rate_limit import get_rate_limiter
+
+        print(f"Deleted {get_rate_limiter(get_settings()).purge_expired()} expired rate-limit counters")
     else:
         seed_demo()
 

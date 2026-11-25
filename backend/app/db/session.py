@@ -46,6 +46,15 @@ def get_engine() -> Engine:
     return _engine
 
 
+def dispose_engine() -> None:
+    """Close all pooled connections and forget the engine (shutdown, tests)."""
+    global _engine, _factory
+    if _engine is not None:
+        _engine.dispose()
+    _engine = None
+    _factory = None
+
+
 def session_factory() -> sessionmaker[Session]:
     get_engine()
     assert _factory is not None

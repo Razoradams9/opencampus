@@ -3,7 +3,9 @@ import uuid
 from fastapi import APIRouter, Depends, Request, Response, status
 
 from app.api.deps import AppSettings, CurrentPrincipal, DbSession, verify_csrf
+from app.api.rate_limits import LoginGuard, guard_refresh, guard_register
 from app.core.config import Settings
+from app.core.errors import ApiError
 from app.core.security import new_opaque_token
 from app.schemas.auth import (
     LoginRequest,
@@ -55,19 +57,30 @@ def _token_response(db: DbSession, settings: Settings, response: Response, token
 
 @router.post("/register", status_code=status.HTTP_201_CREATED, response_model=TokenResponse)
 def register(body: RegisterRequest, request: Request, response: Response, db: DbSession, settings: AppSettings):
+    guard_register(request, settings)  # before password hashing and account creation
     tokens = auth_service.register(db, settings, body, request.headers.get("user-agent"))
     return _token_response(db, settings, response, tokens)
 
 
 @router.post("/login", response_model=TokenResponse)
 def login(body: LoginRequest, request: Request, response: Response, db: DbSession, settings: AppSettings):
-    tokens = auth_service.login(db, settings, body, request.headers.get("user-agent"))
+    guard = LoginGuard(request, settings, body.email)
+    guard.before_attempt()
+    try:
+        tokens = auth_service.login(db, settings, body, request.headers.get("user-agent"))
+    except ApiError as error:
+        if error.code == "invalid_credentials":  # unknown email and wrong password alike
+            guard.record_failure()
+        raise
+    guard.record_success()
     return _token_response(db, settings, response, tokens)
 
 
 @router.post("/refresh", response_model=TokenResponse, dependencies=[Depends(verify_csrf)])
 def refresh(request: Request, response: Response, db: DbSession, settings: AppSettings):
-    tokens = auth_service.rotate_refresh_token(db, settings, request.cookies.get(settings.refresh_cookie_name))
+    raw_token = request.cookies.get(settings.refresh_cookie_name)
+    guard_refresh(request, db, settings, raw_token)
+    tokens = auth_service.rotate_refresh_token(db, settings, raw_token)
     return _token_response(db, settings, response, tokens)
 
 

@@ -139,9 +139,107 @@ tenant-owned tables. Every future institution-owned table must have
 `institution_id NOT NULL`, be added to RLS in its migration, and be covered
 by an isolation test.
 
+## Rate limiting (M3.1)
+
+### Architecture
+
+- **Store:** PostgreSQL table `rate_limit_buckets` (`key_hash`, `window_start`,
+  `count`, `expires_at`; primary key `(key_hash, window_start)`, index on
+  `expires_at`). Global security infrastructure: no `institution_id`, no RLS.
+  The app role has `SELECT, INSERT, UPDATE, DELETE` only.
+- **Algorithm:** fixed windows aligned to database time
+  (`date_bin(window, now(), epoch)`). One atomic upsert per request covers
+  every applicable policy:
+  `INSERT … ON CONFLICT (key_hash, window_start) DO UPDATE SET count = count + 1 RETURNING count`.
+  Concurrent hits serialise on the row, so the limit cannot be exceeded
+  (tested with 20 simultaneous requests against a limit of 5).
+- **Own transaction:** each check runs on a separate connection and commits
+  immediately. It must: a failed login raises an error and rolls back the
+  request transaction, which would otherwise discard the failure count.
+- **Keys:** `HMAC-SHA256(OPENCAMPUS_RATE_LIMIT_SECRET, policy ‖ identity)`.
+  Raw emails, IP addresses and session ids are never stored and cannot be
+  recovered or linked without the secret. The secret must differ from the JWT
+  secret; rotating it simply resets all counters.
+- **Fixed-window limitation:** a client can use its full allowance at the end
+  of one window and again at the start of the next, up to 2× the limit in a
+  short burst. Pairing a short and a long window (5/min + 20/hour) bounds
+  this. A sliding-window or token-bucket algorithm can replace it later
+  without changing callers.
+
+### Policies (defaults; all configurable via `OPENCAMPUS_RATE_LIMIT_*`)
+
+| Endpoint | Identity | Limits | Counts |
+| -------- | -------- | ------ | ------ |
+| login    | client IP | 5/min, 20/hour | every attempt |
+| login    | normalised email | 5/15 min, 20/hour | **failed** attempts only (unknown email or wrong password); cleared on success |
+| register | client IP | 3/hour | every attempt (after body validation, before hashing) |
+| refresh  | session (looked up from the refresh token) | 30/min, 120/hour | every attempt |
+| refresh  | client IP | 120/min, 1200/hour | every attempt |
+
+Rationale and trade-offs:
+
+- **Enumeration:** the account bucket is keyed on the email whether or not an
+  account exists, unknown emails accumulate failures exactly like real ones,
+  and every 429 has the same body. Limits therefore reveal nothing about which
+  emails are registered (tested).
+- **Targeted lockout (DoS):** anyone can spend another user's failure
+  allowance by guessing wrong passwords for their email, blocking that
+  account's logins for up to 15 minutes (or an hour at 20 failures). This is
+  the price of stopping distributed password guessing. It is bounded: no
+  permanent lockout, the attacker's own IPs are limited, and a successful
+  login resets the count. Future mitigations: per-device trust cookies or
+  CAPTCHA instead of a hard block.
+- **Shared IPs (campus NAT):** many students can share one public address.
+  The login IP limit (5/min) can affect a lab full of students signing in at
+  once; raise `OPENCAMPUS_RATE_LIMIT_LOGIN_IP` for such deployments. Refresh
+  IP limits are deliberately generous for the same reason; the per-session
+  limit is the strict one.
+- **Refresh and the 20 s grace window:** the refresh guard runs after CSRF
+  and *before* rotation. A rate-limited refresh never rotates a token, never
+  enters reuse detection and never revokes a session. Parallel-tab refreshes
+  keep their existing "superseded, retry" behaviour (tested with 4
+  simultaneous refreshes of one token: one rotates, three get
+  `refresh_superseded`, nothing is revoked).
+- Logout is not rate limited: it only ever reduces access.
+
+### Responses
+
+- Over a limit: `429` with `Retry-After` (seconds, from database time) and
+  `{"detail": "Too many attempts. Please wait and try again.", "code": "rate_limit_exceeded"}`.
+  The code follows the existing lower-snake-case convention.
+- Storage failure (e.g. database unavailable or permission error): `503`
+  `{"code": "rate_limit_unavailable"}` with `Retry-After: 30`. The protected
+  request does **not** proceed: it fails closed, and a storage fault is never
+  reported as a 429.
+
+### Client IP and trusted proxies
+
+- The client is the direct TCP peer, unless that peer is in
+  `OPENCAMPUS_TRUSTED_PROXIES` (IPs/CIDRs). Only then is `X-Forwarded-For`
+  read, right to left: trusted hops are skipped and the first untrusted
+  address is the client. Entries further left were written by the client and
+  are ignored. `Forwarded` and `X-Real-IP` are not used.
+- IPv6 clients are grouped by /64 (one end site), IPv4 per address.
+- **Uvicorn trusts `X-Forwarded-For` from 127.0.0.1 by default.** Run it with
+  `--no-proxy-headers` so the app setting above is the single source of truth.
+  The Vite dev proxy additionally strips client-supplied forwarding headers.
+- Production behind nginx/Caddy: set `OPENCAMPUS_TRUSTED_PROXIES` to the
+  proxy's address and make the proxy *append* the peer address
+  (`proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`).
+
+### Cleanup and operations
+
+- 1% of checks also delete up to 500 expired rows. For predictable upkeep,
+  schedule `python -m app.cli purge-rate-limits` (e.g. daily).
+- To unblock someone during an incident, delete their rows, or wait: every
+  block expires with its window.
+- Watch for sustained 429 or 503 rates: 429 spikes suggest an attack or a
+  limit too low for a shared IP; 503 means the rate-limit store is failing and
+  sign-in is down.
+
 ## Known gaps (not yet implemented)
 
-- No rate limiting or lockout on login/registration/refresh.
+- Rate limits are fixed-window (see above); no CAPTCHA or device trust yet.
 - No email verification, password reset or MFA.
 - Registration reveals whether an email is registered (409). Inherent to
   self-service sign-up without email verification.

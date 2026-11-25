@@ -25,6 +25,8 @@ if "test" not in TEST_DATABASE_URL.rsplit("/", 1)[-1]:
 # Override (not setdefault) so tests can never touch the development database.
 os.environ["OPENCAMPUS_DATABASE_URL"] = TEST_DATABASE_URL
 os.environ["OPENCAMPUS_JWT_SECRET"] = secrets.token_urlsafe(48)  # fresh per run, never hardcoded
+os.environ["OPENCAMPUS_RATE_LIMIT_SECRET"] = secrets.token_urlsafe(48)
+os.environ.pop("OPENCAMPUS_TRUSTED_PROXIES", None)  # tests set proxies explicitly where needed
 os.environ["OPENCAMPUS_ENV"] = "test"
 os.environ["OPENCAMPUS_COOKIE_SECURE"] = "true"  # production-like cookies
 
@@ -35,7 +37,7 @@ from sqlalchemy import create_engine, text  # noqa: E402
 
 from app.main import create_app  # noqa: E402
 
-TABLES = "refresh_tokens, auth_sessions, memberships, users, institutions"
+TABLES = "rate_limit_buckets, refresh_tokens, auth_sessions, memberships, users, institutions"
 
 
 @pytest.fixture(scope="session")
