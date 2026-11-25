@@ -8,7 +8,8 @@ interface WelcomeSectionProps {
   today: Date;
   upcoming: { item: ScheduleItem; state: "now" | "next" } | undefined;
   subject: Subject | undefined;
-  dueThisWeek: number;
+  tasksDone: number;
+  tasksTotal: number;
 }
 
 function TimeIcon({ hour }: { hour: number }) {
@@ -16,8 +17,11 @@ function TimeIcon({ hour }: { hour: number }) {
   return <Icon className="size-5 text-signal" aria-hidden="true" />;
 }
 
-/** Greeting plus the two things a student checks first: next class, what's due. */
-export function WelcomeSection({ firstName, institutionName, today, upcoming, subject, dueThisWeek }: WelcomeSectionProps) {
+/**
+ * Greeting plus one next step. Workload is framed as progress made
+ * ("2 of 5 done"), not as a pile of what's left.
+ */
+export function WelcomeSection({ firstName, institutionName, today, upcoming, subject, tasksDone, tasksTotal }: WelcomeSectionProps) {
   const date = today.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
 
   return (
@@ -30,7 +34,7 @@ export function WelcomeSection({ firstName, institutionName, today, upcoming, su
         <span className="truncate">
           <time dateTime={today.toISOString().slice(0, 10)}>{date}</time> · {institutionName}
         </span>
-        <span className="shrink-0 border border-white/40 px-1.5 py-px">Sample data</span>
+        <span className="shrink-0 rounded-full bg-white/15 px-2 py-0.5">Sample data</span>
       </div>
 
       <h1
@@ -47,7 +51,7 @@ export function WelcomeSection({ firstName, institutionName, today, upcoming, su
         {upcoming && subject ? (
           <a
             href="#schedule"
-            className="group flex w-full items-center gap-3 bg-white px-3 py-2 text-ink transition-colors hover:bg-canvas sm:w-auto sm:min-w-72"
+            className="group oc-lift flex w-full items-center gap-3 rounded-xl bg-white px-3.5 py-2.5 text-ink shadow-e2 sm:w-auto sm:min-w-72"
           >
             <span className="min-w-0 flex-1">
               <span className="block text-xs text-ink-muted">
@@ -59,14 +63,29 @@ export function WelcomeSection({ firstName, institutionName, today, upcoming, su
             <ArrowRight className="size-4 shrink-0 text-ink-muted transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
           </a>
         ) : (
-          <span className="bg-white/15 px-3 py-2 text-sm">No more classes today</span>
+          <span className="rounded-xl bg-white/15 px-3.5 py-2.5 text-sm">No more classes today. Enjoy the evening.</span>
         )}
-        <a href="#tasks" className="inline-flex min-h-11 items-center gap-2 bg-white/15 px-3 py-2 text-sm transition-colors hover:bg-white/25">
-          <span className="font-semibold">{dueThisWeek}</span> due this week
+        <a
+          href="#tasks"
+          className="inline-flex min-h-11 items-center gap-3 rounded-xl bg-white/15 px-3.5 py-2 text-sm transition-colors hover:bg-white/25"
+        >
+          <span
+            className="h-1.5 w-12 overflow-hidden rounded-full bg-white/25"
+            role="progressbar"
+            aria-label="Tasks completed"
+            aria-valuenow={tasksDone}
+            aria-valuemin={0}
+            aria-valuemax={tasksTotal}
+          >
+            <span className="block h-full rounded-full bg-white" style={{ width: `${tasksTotal ? (tasksDone / tasksTotal) * 100 : 0}%` }} />
+          </span>
+          <span>
+            <span className="font-semibold">{tasksDone}</span> of {tasksTotal} tasks done
+          </span>
         </a>
       </div>
 
-      <span className="absolute bottom-0 left-5 h-1 w-16 bg-signal sm:left-8" aria-hidden="true" />
+      <span className="absolute bottom-0 left-5 h-1 w-16 rounded-t-full bg-signal sm:left-8" aria-hidden="true" />
     </section>
   );
 }

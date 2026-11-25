@@ -89,7 +89,7 @@ export function Sidebar({ open, onClose, me, onSwitchInstitution, onLogout }: Si
             to="/"
             aria-current="page"
             onClick={onClose}
-            className="flex items-center gap-3 rounded-oc bg-ink px-3 py-2 text-sm font-medium text-surface"
+            className="flex items-center gap-3 rounded-xl bg-ink px-3 py-2.5 text-sm font-medium text-surface shadow-e2"
           >
             <Home className="size-4 text-periwinkle" aria-hidden="true" />
             Home

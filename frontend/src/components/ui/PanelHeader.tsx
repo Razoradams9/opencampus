@@ -15,8 +15,8 @@ export function PanelHeader({ id, title, tone, aside }: PanelHeaderProps) {
   return (
     <header
       style={tone ? toneStyle(tone) : undefined}
-      className={`flex items-center justify-between gap-4 border-b border-line px-4 py-3 sm:px-5 ${
-        tone ? "border-t-4 border-t-(--tone) bg-(--tone)/[0.1]" : ""
+      className={`flex items-center justify-between gap-4 border-b border-line/70 px-4 py-3 sm:px-5 ${
+        tone ? "border-t-[3px] border-t-(--tone) bg-(--tone)/[0.09]" : ""
       }`}
     >
       <h2 id={id} className="flex items-center gap-2 font-display text-lg font-medium tracking-tight sm:text-xl">

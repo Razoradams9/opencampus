@@ -17,7 +17,7 @@ export function Field({ id, label, hint, ...input }: FieldProps) {
       <input
         id={id}
         aria-describedby={hintId}
-        className="mt-1.5 h-11 w-full rounded-oc border border-line-strong bg-surface px-3 text-[0.9375rem] text-ink transition-colors placeholder:text-ink-subtle hover:border-ink-subtle focus:border-accent focus:outline-none disabled:opacity-60"
+        className="mt-1.5 h-11 w-full rounded-xl border border-line-strong bg-surface shadow-e1 px-3 text-[0.9375rem] text-ink transition-colors placeholder:text-ink-subtle hover:border-ink-subtle focus:border-accent focus:outline-none disabled:opacity-60"
         {...input}
       />
       {hint && (
@@ -44,7 +44,7 @@ export function SubmitButton({ busy, children }: { busy: boolean; children: Reac
     <button
       type="submit"
       disabled={busy}
-      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-oc bg-ink px-4 text-sm font-semibold text-canvas transition-colors hover:bg-ink/90 disabled:cursor-wait disabled:opacity-70"
+      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-ink shadow-e2 px-4 text-sm font-semibold text-canvas transition-colors hover:bg-ink/90 disabled:cursor-wait disabled:opacity-70"
     >
       {busy && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}
       {children}

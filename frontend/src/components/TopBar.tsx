@@ -46,7 +46,7 @@ function SearchField({
         }}
         placeholder="Search subjects, classes, tasks…"
         autoComplete="off"
-        className="h-9 w-full rounded-oc border border-line bg-surface pr-12 pl-9 text-sm text-ink transition-colors placeholder:text-ink-subtle hover:border-line-strong focus:border-accent focus:outline-none [&::-webkit-search-cancel-button]:hidden"
+        className="h-10 w-full rounded-xl border border-white/70 bg-surface pr-12 pl-9 text-sm text-ink shadow-e1 transition-colors placeholder:text-ink-subtle hover:border-line-strong focus:border-accent focus:outline-none [&::-webkit-search-cancel-button]:hidden"
       />
       {query ? (
         <button
@@ -97,7 +97,7 @@ export function TopBar({ onMenuClick, menuOpen, connection, query, onQueryChange
   }, []);
 
   return (
-    <header className="sticky top-0 z-20 border-b border-line bg-canvas/95 backdrop-blur-sm">
+    <header className="sticky top-0 z-20 border-b border-white/50 bg-canvas/80 backdrop-blur-md">
       <div className="flex h-(--oc-topbar-height) items-center gap-2 px-4 sm:gap-3 sm:px-6 lg:px-10">
         <button
           type="button"

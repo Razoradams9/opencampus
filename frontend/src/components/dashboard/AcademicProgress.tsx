@@ -82,7 +82,7 @@ export function AcademicProgress({ subjects, featured, totalCount, query }: Acad
             type="button"
             disabled
             aria-label="Continue learning (coming soon)"
-            className="inline-flex h-10 shrink-0 cursor-not-allowed items-center gap-1.5 border border-line-strong bg-surface px-3 text-sm font-medium text-ink-subtle"
+            className="inline-flex h-10 shrink-0 cursor-not-allowed items-center gap-1.5 rounded-lg border border-line-strong bg-surface px-3 text-sm font-medium text-ink-subtle"
           >
             Continue <ArrowRight className="size-4" aria-hidden="true" />
           </button>

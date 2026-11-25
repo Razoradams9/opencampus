@@ -29,9 +29,9 @@ export function CampusUpdates({ updates, today, query }: CampusUpdatesProps) {
         <ul className="divide-y divide-line">
           {updates.map((u) => (
             <li key={u.id} className="relative px-4 py-3 sm:px-5">
-              {u.important && <span className="absolute inset-y-0 left-0 w-1 bg-subject-violet" aria-hidden="true" />}
+              {u.important && <span className="absolute inset-y-2 left-0 w-1 rounded-r-full bg-subject-violet" aria-hidden="true" />}
               <div className="flex items-center gap-2 text-[0.6875rem]">
-                <span className={`px-1.5 py-px font-medium ${CATEGORY_STYLE[u.category]}`}>
+                <span className={`rounded-full px-2 py-px font-medium ${CATEGORY_STYLE[u.category]}`}>
                   <Highlight text={u.category} query={query} />
                 </span>
                 {u.important && <span className="font-semibold text-subject-violet">Important</span>}

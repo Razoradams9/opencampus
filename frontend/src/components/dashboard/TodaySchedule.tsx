@@ -17,6 +17,8 @@ interface TodayScheduleProps {
 
 export function TodaySchedule({ items, subjects, now, totalCount, query }: TodayScheduleProps) {
   const states = slotStates(items, now);
+  // Only one filled card at a time: the class in progress, else the next one.
+  const hasCurrent = [...states.values()].includes("now");
 
   return (
     <section id="schedule" aria-labelledby="schedule-title" className="oc-panel flex h-full scroll-mt-24 flex-col">
@@ -29,12 +31,19 @@ export function TodaySchedule({ items, subjects, now, totalCount, query }: Today
           {items.map((item) => {
             const subject = subjects.get(item.subjectId);
             const state = states.get(item.id) ?? "later";
-            const featured = state === "now" || state === "next";
+            const featured = state === "now" || (state === "next" && !hasCurrent);
+            const softNext = state === "next" && hasCurrent;
             return (
               <li key={item.id} style={subject ? toneStyle(subject.tone) : undefined}>
                 <div
-                  className={`grid grid-cols-[4.75rem_1fr] items-center gap-3 px-3 py-2.5 ${
-                    featured ? "bg-(--tone) text-white" : state === "past" ? "opacity-55" : ""
+                  className={`grid grid-cols-[4.75rem_1fr] items-center gap-3 rounded-xl px-3 py-2.5 ${
+                    featured
+                      ? "oc-raised relative z-[1] my-1 bg-(--tone) text-white"
+                      : softNext
+                        ? "bg-(--tone)/[0.08]"
+                        : state === "past"
+                          ? "opacity-55"
+                          : ""
                   }`}
                 >
                   <div className="font-mono leading-tight whitespace-nowrap">
@@ -43,11 +52,15 @@ export function TodaySchedule({ items, subjects, now, totalCount, query }: Today
                       {formatTime(item.end)}
                     </time>
                   </div>
-                  <div className={`min-w-0 border-l-[3px] pl-3 ${featured ? "border-white/60" : "border-(--tone)"}`}>
+                  <div className={`min-w-0 border-l-[3px] pl-3 ${featured ? "border-white/60" : "border-(--tone)"} rounded-[1px]`}>
                     <p className="flex items-center gap-2 truncate text-[0.9375rem] font-semibold">
                       <Highlight text={subject?.name ?? "Class"} query={query} />
-                      {featured && (
-                        <span className="shrink-0 bg-white/20 px-1.5 py-px text-[0.6875rem] font-medium">
+                      {(featured || softNext) && (
+                        <span
+                          className={`shrink-0 rounded-full px-2 py-px text-[0.6875rem] font-medium ${
+                            featured ? "bg-white/20" : "bg-(--tone)/15 text-(--tone)"
+                          }`}
+                        >
                           {state === "now" ? "Now" : "Next"}
                         </span>
                       )}

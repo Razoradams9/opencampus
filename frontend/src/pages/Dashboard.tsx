@@ -11,7 +11,6 @@ import { TodaySchedule } from "../components/dashboard/TodaySchedule";
 import { WelcomeSection } from "../components/dashboard/WelcomeSection";
 import type { DashboardData } from "../data/types";
 import type { ActiveInstitution, AuthUser } from "../lib/auth/types";
-import { daysBetween } from "../lib/dates";
 import { filterDashboard } from "../lib/filterDashboard";
 import { currentOrNextClass } from "../lib/schedule";
 import { subjectLookup } from "../lib/subjects";
@@ -44,16 +43,13 @@ export function Dashboard({ user, institution, data, today, health, query, onCle
   const searching = query.trim() !== "";
   const upcoming = currentOrNextClass(data.schedule, now);
 
-  const dueThisWeek = assignments.filter((a) => {
-    const days = daysBetween(today, a.due);
-    return !a.done && days >= 0 && days <= 7;
-  }).length;
+  const tasksDone = assignments.filter((a) => a.done).length;
   const featured = data.subjects.find((s) => s.progress < 100);
 
   return (
     <div className="space-y-4">
       {searching && (
-        <div role="status" className="flex items-center justify-between gap-3 border border-accent/30 bg-accent-soft px-4 py-2.5 text-sm">
+        <div role="status" className="flex items-center justify-between gap-3 rounded-xl bg-accent-soft px-4 py-2.5 text-sm shadow-e1">
           <p>
             <span className="font-semibold">{filtered.total}</span> {filtered.total === 1 ? "match" : "matches"} for “
             <span className="font-medium">{query.trim()}</span>”
@@ -77,7 +73,8 @@ export function Dashboard({ user, institution, data, today, health, query, onCle
               today={today}
               upcoming={upcoming}
               subject={upcoming ? subjects.get(upcoming.item.subjectId) : undefined}
-              dueThisWeek={dueThisWeek}
+              tasksDone={tasksDone}
+              tasksTotal={assignments.length}
             />
           </div>
         )}
@@ -91,6 +88,7 @@ export function Dashboard({ user, institution, data, today, health, query, onCle
         </div>
         <div className="lg:order-5 lg:col-span-7">
           <AssignmentList
+            searching={searching}
             assignments={filtered.assignments}
             allAssignments={assignments}
             subjects={subjects}

@@ -29,16 +29,16 @@ export function QuickActions() {
         </h2>
         <p className="font-mono text-[0.6875rem] tracking-[0.08em] text-ink-subtle uppercase">Coming soon</p>
       </div>
-      <ul className="oc-scroll-x -mx-4 flex gap-2 px-4 sm:mx-0 sm:grid sm:grid-cols-4 sm:px-0">
+      <ul className="oc-scroll-x -mx-4 flex gap-2.5 px-4 pt-1 pb-3 sm:mx-0 sm:grid sm:grid-cols-4 sm:px-0">
         {ACTIONS.map(({ label, icon: Icon, tone }) => (
           <li key={label} style={toneStyle(tone)} className="shrink-0">
             <button
               type="button"
               disabled
               aria-describedby="quick-actions-title"
-              className="flex h-12 w-full cursor-not-allowed items-center gap-2.5 border border-line bg-surface/80 pr-4 pl-2 text-sm font-medium whitespace-nowrap text-ink-muted"
+              className="flex h-12 w-full cursor-not-allowed items-center gap-2.5 rounded-xl bg-surface/85 pr-4 pl-2 text-sm font-medium whitespace-nowrap text-ink-muted shadow-e1"
             >
-              <span className="grid size-8 place-items-center bg-(--tone)/15 text-(--tone)" aria-hidden="true">
+              <span className="grid size-8 place-items-center rounded-lg bg-(--tone)/15 text-(--tone)" aria-hidden="true">
                 <Icon className="size-4" />
               </span>
               {label}

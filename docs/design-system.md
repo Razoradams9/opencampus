@@ -36,8 +36,8 @@ is for graphics only, never text.
 
 ## Layout rules
 
-- Panels (`.oc-panel`) are flat with 1px borders and square corners; no drop
-  shadows except the floating notifications panel.
+- Cards (`.oc-panel`) are rounded (`--oc-radius-card`, 14px) and raised one
+  level (`--oc-shadow-1` + a lit top edge). See *Depth* below.
 - Each panel opens with `PanelHeader`: mono index eyebrow + serif title.
 - Deliberate variation: the AI teaser is the one inverted (navy) block; quick
   actions are a ruled strip, not cards; the event pairs text with a line
@@ -77,3 +77,36 @@ Students skim on phones. Rules:
 - Breakpoints: sidebar is fixed at ≥1024px (`lg`), a drawer below.
 - Motion only for state changes (drawer, spinner); honours
   `prefers-reduced-motion`.
+
+## Depth
+
+Follows Material's elevation model: shadow size tracks height, one light
+source from above, and a shadow never appears without a reason to be higher.
+
+| Level | Token            | Used for |
+| ----- | ---------------- | -------- |
+| 0     | canvas           | page, with soft radial "daylight" from the top-left |
+| 1     | `--oc-shadow-1`  | cards, quick actions, inputs, institution switcher |
+| 2     | `--oc-shadow-2`  | the one thing that matters now: current class, next-class chip, active nav, AI and date blocks |
+| 3     | `--oc-shadow-3`  | floating UI: bottom tab bar, menus, notifications |
+
+Shadows are navy-tinted, never grey. `.oc-lift` adds a 1px lift on hover.
+
+## Calm by default
+
+Opening the portal should not feel like an alarm. Rules, with the strength of
+the evidence behind each:
+
+- **Show the next step, disclose the rest.** Due soon shows the 3 nearest
+  tasks; "Show all N" reveals the rest and always states how many
+  (progressive disclosure; moderate evidence, NN/g / Carroll).
+- **Red means overdue, nothing else.** Today/tomorrow use the accent blue;
+  priority is a soft amber "Priority" chip (red-and-anxiety research is
+  mixed, so red is kept for the one case that truly needs it).
+- **Frame workload as progress.** "2 of 5 tasks done" with a bar, "All caught
+  up" when finished, a small check animation on completion (endowed-progress /
+  goal-gradient findings).
+- **One loud thing at a time.** Only the current (or next) class is filled;
+  the other upcoming class is a soft tint.
+- **No counters where a signal will do.** The notification bell shows a dot.
+- Motion is short, purposeful and disabled under `prefers-reduced-motion`.

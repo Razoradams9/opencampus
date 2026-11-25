@@ -61,7 +61,7 @@ export function AppShell({ me, health, data, today, query, onQueryChange, childr
           notifications={data.updates.filter((u) => u.important)}
           today={today}
         />
-        <main id="main" className="mx-auto max-w-[78rem] px-4 pt-4 pb-28 sm:px-6 sm:pt-6 lg:px-10 lg:pt-8 lg:pb-16">
+        <main id="main" className="mx-auto max-w-[78rem] px-4 pt-4 pb-32 sm:px-6 sm:pt-6 lg:px-10 lg:pt-8 lg:pb-16">
           {children}
         </main>
       </div>

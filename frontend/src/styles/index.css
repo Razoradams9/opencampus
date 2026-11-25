@@ -27,8 +27,8 @@
   --oc-accent-soft: #d6defb;
   --oc-signal: #e2683c; /* brand mark, single highlight per view (graphics) */
   --oc-signal-strong: #c2522a; /* signal behind white text (≥4.6:1) */
-  --oc-hero: #3550c8; /* welcome block */
-  --oc-hero-deep: #2a44b5;
+  --oc-hero: #3a58d0; /* welcome block: white text ≥4.6:1 across the gradient */
+  --oc-hero-light: #4a6ee0;
   --oc-success: #17704b;
   --oc-success-soft: #d9efe5;
   --oc-danger: #b83a33;
@@ -43,10 +43,19 @@
   --oc-subject-rose: #b23a66;
   --oc-subject-violet: #6346c0;
 
+  /* Elevation — one light source from above; higher = larger, softer shadow.
+     Shadows are navy-tinted, never grey, so they sit naturally on blue. */
+  --oc-shadow-1: 0 1px 2px rgb(19 32 74 / 0.06), 0 4px 14px -4px rgb(19 32 74 / 0.12);
+  --oc-shadow-2: 0 2px 4px rgb(19 32 74 / 0.06), 0 12px 28px -10px rgb(19 32 74 / 0.28);
+  --oc-shadow-3: 0 4px 8px rgb(19 32 74 / 0.08), 0 24px 48px -16px rgb(19 32 74 / 0.35);
+  /* Top-edge highlight: makes a raised surface read as lit from above. */
+  --oc-highlight: inset 0 1px 0 rgb(255 255 255 / 0.7);
+
   /* Layout */
   --oc-sidebar-width: 15.5rem;
   --oc-topbar-height: 3.75rem;
   --oc-radius: 0.375rem;
+  --oc-radius-card: 0.875rem;
 }
 
 @theme {
@@ -66,7 +75,7 @@
   --color-signal: var(--oc-signal);
   --color-signal-strong: var(--oc-signal-strong);
   --color-hero: var(--oc-hero);
-  --color-hero-deep: var(--oc-hero-deep);
+  --color-hero-light: var(--oc-hero-light);
   --color-success: var(--oc-success);
   --color-success-soft: var(--oc-success-soft);
   --color-danger: var(--oc-danger);
@@ -84,6 +93,10 @@
   --font-mono: "Geist Mono", ui-monospace, monospace;
 
   --radius-oc: var(--oc-radius);
+  --radius-card: var(--oc-radius-card);
+  --shadow-e1: var(--oc-shadow-1);
+  --shadow-e2: var(--oc-shadow-2);
+  --shadow-e3: var(--oc-shadow-3);
 }
 
 @layer base {
@@ -91,7 +104,13 @@
     -webkit-font-smoothing: antialiased;
   }
   body {
-    @apply bg-canvas font-sans text-ink;
+    @apply font-sans text-ink;
+    /* Soft "daylight" from the top-left gives the canvas depth. */
+    background-color: var(--oc-canvas);
+    background-image:
+      radial-gradient(60rem 40rem at 10% -10%, rgb(255 255 255 / 0.55), transparent 60%),
+      radial-gradient(50rem 40rem at 110% 20%, rgb(221 212 248 / 0.6), transparent 60%);
+    background-attachment: fixed;
   }
   :focus-visible {
     outline: 2px solid var(--oc-accent);
@@ -105,9 +124,29 @@
     @apply font-mono text-[0.6875rem] font-medium tracking-[0.12em] text-ink-subtle uppercase;
   }
 
-  /* Standard panel: flat surface, 1px rule, no shadow. */
+  /* Standard card: raised one level, rounded, lit top edge. */
   .oc-panel {
-    @apply border border-line bg-surface;
+    @apply overflow-hidden rounded-card bg-surface;
+    box-shadow: var(--oc-highlight), var(--oc-shadow-1);
+  }
+
+  /* Raised two levels: the one thing that matters right now. */
+  .oc-raised {
+    box-shadow: var(--oc-shadow-2);
+  }
+
+  /* Gentle lift on hover for interactive cards and rows. */
+  .oc-lift {
+    transition: transform 160ms ease, box-shadow 160ms ease;
+  }
+  .oc-lift:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--oc-shadow-2);
+  }
+
+  /* Small reward when a task is ticked. */
+  .oc-pop {
+    animation: oc-pop 260ms cubic-bezier(0.3, 1.6, 0.6, 1);
   }
 
   /* Search hit highlight. */
@@ -116,15 +155,17 @@
     box-shadow: inset 0 -2px 0 var(--oc-accent);
   }
 
-  /* Welcome block: cobalt with the blueprint grid drawn in white. */
+  /* Welcome block: friendly blue with the blueprint grid drawn in white. */
   .oc-hero {
+    border-radius: var(--oc-radius-card);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 18px 40px -18px rgb(58 88 208 / 0.65);
     background-color: var(--oc-hero);
     background-image:
-      linear-gradient(to right, rgb(255 255 255 / 0.09) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(255 255 255 / 0.09) 1px, transparent 1px),
-      linear-gradient(to right, rgb(255 255 255 / 0.04) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(255 255 255 / 0.04) 1px, transparent 1px),
-      linear-gradient(135deg, var(--oc-hero) 0%, var(--oc-hero-deep) 100%);
+      linear-gradient(to right, rgb(255 255 255 / 0.07) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.07) 1px, transparent 1px),
+      linear-gradient(to right, rgb(255 255 255 / 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.03) 1px, transparent 1px),
+      linear-gradient(135deg, var(--oc-hero) 0%, var(--oc-hero-light) 100%);
     background-size:
       96px 96px,
       96px 96px,
@@ -172,6 +213,15 @@
       96px 96px,
       24px 24px,
       24px 24px;
+  }
+}
+
+@keyframes oc-pop {
+  0% {
+    transform: scale(0.6);
+  }
+  100% {
+    transform: scale(1);
   }
 }
 

@@ -48,7 +48,7 @@ export function InstitutionSwitcher({ me, onSwitch }: InstitutionSwitcherProps) 
   );
 
   if (options.length <= 1) {
-    return <div className="flex w-full items-center gap-3 border border-line bg-canvas/70 px-3 py-2">{summary}</div>;
+    return <div className="flex w-full items-center gap-3 rounded-xl bg-surface/80 px-3 py-2 shadow-e1">{summary}</div>;
   }
 
   const choose = async (institutionId: string) => {
@@ -73,13 +73,13 @@ export function InstitutionSwitcher({ me, onSwitch }: InstitutionSwitcherProps) 
         aria-expanded={open}
         aria-controls={menuId}
         aria-label={`Institution: ${active?.name ?? "none"}. Switch institution`}
-        className="flex w-full items-center gap-3 border border-line bg-canvas/70 px-3 py-2 text-left transition-colors hover:border-line-strong"
+        className="flex w-full items-center gap-3 rounded-xl bg-surface/80 px-3 py-2 text-left shadow-e1 transition-shadow hover:shadow-e2"
       >
         {summary}
         <ChevronsUpDown className="size-3.5 shrink-0 text-ink-subtle" aria-hidden="true" />
       </button>
       {open && (
-        <div id={menuId} className="absolute inset-x-0 z-10 mt-1 border border-line-strong bg-surface shadow-[0_8px_24px_-12px_rgb(19_32_74/0.25)]">
+        <div id={menuId} className="absolute inset-x-0 z-10 mt-1.5 overflow-hidden rounded-card bg-surface shadow-e3">
           <p className="oc-eyebrow border-b border-line px-3 py-2">Switch institution</p>
           <ul>
             {options.map((m) => (

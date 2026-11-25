@@ -3,7 +3,7 @@ import { Sparkles } from "lucide-react";
 /** Planned feature. No input and no button: nothing here is connected to AI. */
 export function AiAssistantTeaser() {
   return (
-    <section aria-labelledby="ai-title" className="relative flex h-full flex-col justify-between gap-4 overflow-hidden bg-ink px-5 py-5 text-white sm:px-6">
+    <section aria-labelledby="ai-title" className="relative flex h-full flex-col justify-between gap-4 overflow-hidden rounded-card bg-ink px-5 py-5 text-white shadow-e2 sm:px-6">
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.08]"
         style={{
@@ -14,10 +14,10 @@ export function AiAssistantTeaser() {
         aria-hidden="true"
       />
       <div className="relative flex items-center justify-between">
-        <span className="grid size-10 place-items-center bg-white/10">
+        <span className="grid size-10 place-items-center rounded-xl bg-white/10">
           <Sparkles className="size-5 text-signal" aria-hidden="true" />
         </span>
-        <span className="border border-periwinkle/60 px-1.5 py-px font-mono text-[0.625rem] tracking-[0.08em] text-periwinkle uppercase">
+        <span className="rounded-full border border-periwinkle/50 px-2 py-0.5 font-mono text-[0.625rem] tracking-[0.08em] text-periwinkle uppercase">
           Planned
         </span>
       </div>

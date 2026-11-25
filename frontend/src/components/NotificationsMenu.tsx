@@ -47,16 +47,14 @@ export function NotificationsMenu({ items, today }: NotificationsMenuProps) {
         aria-expanded={open}
         aria-controls={panelId}
         aria-label={`Notifications, ${items.length} important`}
+        title="Notifications"
         className={`relative grid size-9 place-items-center rounded-oc text-ink-muted transition-colors hover:bg-sunken hover:text-ink ${
           open ? "bg-sunken text-ink" : ""
         }`}
       >
         <Bell className="size-[1.125rem]" aria-hidden="true" />
-        {items.length > 0 && (
-          <span className="absolute top-1.5 right-1.5 grid size-3.5 place-items-center rounded-full bg-accent font-mono text-[0.5625rem] font-medium text-surface">
-            {items.length}
-          </span>
-        )}
+        {/* A calm dot, not a counter: the panel shows what's there. */}
+        {items.length > 0 && <span className="absolute top-2 right-2 size-2 rounded-full bg-accent ring-2 ring-canvas" aria-hidden="true" />}
       </button>
 
       {open && (
@@ -64,7 +62,7 @@ export function NotificationsMenu({ items, today }: NotificationsMenuProps) {
           id={panelId}
           role="region"
           aria-label="Notifications"
-          className="absolute right-0 z-30 mt-2 w-[min(20rem,calc(100vw-2rem))] border border-line-strong bg-surface shadow-[0_8px_24px_-12px_rgb(19_32_74/0.25)]"
+          className="absolute right-0 z-30 mt-2 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-card bg-surface shadow-e3"
         >
           <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
             <p className="oc-eyebrow">Important updates</p>

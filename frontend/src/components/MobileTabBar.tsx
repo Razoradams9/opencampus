@@ -16,7 +16,7 @@ const TABS: Tab[] = [
   { id: "campus", label: "Campus", icon: Megaphone },
 ];
 
-/** Thumb-reach navigation for phones and tablets (hidden at ≥1024px). */
+/** Floating thumb-reach navigation for phones and tablets (hidden at ≥1024px). */
 export function MobileTabBar({ onMenu }: { onMenu: () => void }) {
   const [active, setActive] = useState("home");
 
@@ -48,7 +48,7 @@ export function MobileTabBar({ onMenu }: { onMenu: () => void }) {
   return (
     <nav
       aria-label="Sections"
-      className="fixed inset-x-0 bottom-0 z-20 border-t border-line-strong/70 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm lg:hidden"
+      className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-20 rounded-2xl border border-white/70 bg-surface/90 shadow-e3 backdrop-blur-md lg:hidden"
     >
       <ul className="flex h-16">
         {TABS.map(({ id, label, icon: Icon }) => {

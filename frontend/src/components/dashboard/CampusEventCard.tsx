@@ -21,7 +21,7 @@ export function CampusEventCard({ event, today, query }: CampusEventCardProps) {
         <div className="flex items-start gap-3">
           <time
             dateTime={event.date.toISOString().slice(0, 10)}
-            className="flex w-14 shrink-0 flex-col items-center bg-signal-strong py-1.5 text-white"
+            className="flex w-14 shrink-0 flex-col items-center rounded-xl bg-signal-strong py-1.5 text-white shadow-e2"
           >
             <span className="font-mono text-[0.6875rem] tracking-widest uppercase">{month}</span>
             <span className="font-display text-3xl leading-none font-medium">{event.date.getDate()}</span>
