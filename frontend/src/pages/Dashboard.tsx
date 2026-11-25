@@ -64,15 +64,17 @@ export function Dashboard({ user, institution, data, today, health, query, onCle
         </div>
       )}
 
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-12 lg:gap-6">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-8 lg:grid-cols-12 lg:gap-x-8 lg:gap-y-10">
         {!searching && (
           <div className="lg:order-1 lg:col-span-8">
             <WelcomeSection
               firstName={user.full_name.split(" ")[0]}
               institutionName={institution.name}
               today={today}
+              now={now}
+              schedule={data.schedule}
+              subjects={subjects}
               upcoming={upcoming}
-              subject={upcoming ? subjects.get(upcoming.item.subjectId) : undefined}
               tasksDone={tasksDone}
               tasksTotal={assignments.length}
             />

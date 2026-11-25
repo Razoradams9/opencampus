@@ -1,11 +1,11 @@
-import { MapPin } from "lucide-react";
 import type { ScheduleItem, Subject } from "../../data/types";
-import { formatTime } from "../../lib/dates";
+import { formatTime, toMinutes } from "../../lib/dates";
 import { slotStates } from "../../lib/schedule";
 import { toneStyle } from "../../lib/subjects";
 import { Highlight } from "../ui/Highlight";
 import { NoMatches } from "../ui/NoMatches";
-import { PanelHeader } from "../ui/PanelHeader";
+import { SectionHeading } from "../ui/SectionHeading";
+import { SubjectMark } from "../ui/SubjectMark";
 
 interface TodayScheduleProps {
   items: ScheduleItem[];
@@ -15,69 +15,86 @@ interface TodayScheduleProps {
   query: string;
 }
 
+/** Vertical pixels per minute: a one-hour class is 68px tall. */
+const PX_PER_MIN = 68 / 60;
+
+/**
+ * A proportional day view: block height is class length, so the shape of
+ * the day (long labs, free gaps) is visible at a glance.
+ */
 export function TodaySchedule({ items, subjects, now, totalCount, query }: TodayScheduleProps) {
   const states = slotStates(items, now);
-  // Only one filled card at a time: the class in progress, else the next one.
   const hasCurrent = [...states.values()].includes("now");
 
-  return (
-    <section id="schedule" aria-labelledby="schedule-title" className="oc-panel flex h-full scroll-mt-24 flex-col">
-      <PanelHeader id="schedule-title" title="Today" tone="teal" aside={`${totalCount} classes`} />
+  const start = items.length ? Math.floor(Math.min(...items.map((i) => toMinutes(i.start))) / 60) * 60 : 0;
+  const end = items.length ? Math.ceil(Math.max(...items.map((i) => toMinutes(i.end))) / 60) * 60 : 0;
+  const hours = Array.from({ length: (end - start) / 60 + 1 }, (_, i) => start + i * 60);
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
 
-      {items.length === 0 ? (
-        <NoMatches what="classes" />
-      ) : (
-        <ol className="space-y-1.5 p-2 sm:p-3">
-          {items.map((item) => {
-            const subject = subjects.get(item.subjectId);
-            const state = states.get(item.id) ?? "later";
-            const featured = state === "now" || (state === "next" && !hasCurrent);
-            const softNext = state === "next" && hasCurrent;
-            return (
-              <li key={item.id} style={subject ? toneStyle(subject.tone) : undefined}>
-                <div
-                  className={`grid grid-cols-[4.75rem_1fr] items-center gap-3 rounded-xl px-3 py-2.5 ${
+  return (
+    <section id="schedule" aria-labelledby="schedule-title" className="flex h-full scroll-mt-24 flex-col">
+      <SectionHeading id="schedule-title" title="Today" accent="var(--oc-subject-teal)" meta={`${totalCount} classes`} />
+
+      <div className="oc-panel flex-1 p-3 sm:p-4">
+        {items.length === 0 ? (
+          <NoMatches what="classes" />
+        ) : (
+          <ol className="relative ml-[4.25rem]" style={{ height: (end - start) * PX_PER_MIN }}>
+            {hours.map((h) => (
+              <li key={`h${h}`} aria-hidden="true" className="absolute inset-x-0" style={{ top: (h - start) * PX_PER_MIN }}>
+                <span className="absolute -left-[4.25rem] w-[3.75rem] -translate-y-1/2 text-right font-mono text-[0.6875rem] whitespace-nowrap text-ink-subtle">
+                  {formatTime(`${String(h / 60).padStart(2, "0")}:00`)}
+                </span>
+                <span className="block border-t border-dashed border-line" />
+              </li>
+            ))}
+
+            {items.map((item) => {
+              const subject = subjects.get(item.subjectId);
+              const state = states.get(item.id) ?? "later";
+              const featured = state === "now" || (state === "next" && !hasCurrent);
+              const top = (toMinutes(item.start) - start) * PX_PER_MIN;
+              const height = (toMinutes(item.end) - toMinutes(item.start)) * PX_PER_MIN;
+              return (
+                <li
+                  key={item.id}
+                  style={{ ...(subject ? toneStyle(subject.tone) : {}), top: top + 2, height: height - 4 }}
+                  className={`absolute right-0 left-1 flex flex-col justify-center overflow-hidden rounded-lg border-l-4 px-3 ${
                     featured
-                      ? "oc-raised relative z-[1] my-1 bg-(--tone) text-white"
-                      : softNext
-                        ? "bg-(--tone)/[0.08]"
-                        : state === "past"
-                          ? "opacity-55"
-                          : ""
+                      ? "oc-raised z-[1] border-white/50 bg-(--tone) text-white"
+                      : state === "past"
+                        ? "border-(--tone)/40 bg-[color-mix(in_srgb,var(--oc-surface-sunken)_55%,var(--oc-surface))] text-ink-subtle"
+                        : "border-(--tone) bg-[color-mix(in_srgb,var(--tone)_10%,var(--oc-surface))]"
                   }`}
                 >
-                  <div className="font-mono leading-tight whitespace-nowrap">
-                    <time className="block text-sm font-medium">{formatTime(item.start)}</time>
-                    <time className={`block text-[0.6875rem] ${featured ? "text-white/80" : "text-ink-subtle"}`}>
-                      {formatTime(item.end)}
-                    </time>
-                  </div>
-                  <div className={`min-w-0 border-l-[3px] pl-3 ${featured ? "border-white/60" : "border-(--tone)"} rounded-[1px]`}>
-                    <p className="flex items-center gap-2 truncate text-[0.9375rem] font-semibold">
-                      <Highlight text={subject?.name ?? "Class"} query={query} />
-                      {(featured || softNext) && (
-                        <span
-                          className={`shrink-0 rounded-full px-2 py-px text-[0.6875rem] font-medium ${
-                            featured ? "bg-white/20" : "bg-(--tone)/15 text-(--tone)"
-                          }`}
-                        >
-                          {state === "now" ? "Now" : "Next"}
-                        </span>
-                      )}
-                    </p>
-                    <p className={`mt-0.5 flex items-center gap-1 truncate text-xs ${featured ? "text-white/85" : "text-ink-muted"}`}>
-                      <Highlight text={item.kind} query={query} />
-                      <span aria-hidden="true">·</span>
-                      <MapPin className="size-3 shrink-0" aria-hidden="true" />
-                      <Highlight text={item.room} query={query} />
-                    </p>
-                  </div>
-                </div>
+                  <p className="flex items-center gap-2 truncate text-[0.9375rem] font-semibold">
+                    {subject && !featured && <SubjectMark tone={subject.tone} className="size-2.5" />}
+                    <Highlight text={subject?.name ?? "Class"} query={query} />
+                    {featured && (
+                      <span className="shrink-0 rounded-full bg-white/20 px-2 py-px text-[0.6875rem] font-medium">
+                        {state === "now" ? "Now" : "Next"}
+                      </span>
+                    )}
+                  </p>
+                  <p className={`truncate text-xs ${featured ? "text-white/85" : "text-ink-muted"}`}>
+                    <span className="font-mono">
+                      {formatTime(item.start)}–{formatTime(item.end)}
+                    </span>{" "}
+                    · <Highlight text={item.kind} query={query} /> · <Highlight text={item.room} query={query} />
+                  </p>
+                </li>
+              );
+            })}
+
+            {nowMinutes > start && nowMinutes < end && (
+              <li aria-hidden="true" className="absolute inset-x-0 z-[2]" style={{ top: (nowMinutes - start) * PX_PER_MIN }}>
+                <span className="absolute -left-1.5 -top-1 size-2 rounded-full bg-signal" />
+                <span className="block h-0.5 bg-signal" />
               </li>
-            );
-          })}
-        </ol>
-      )}
+            )}
+          </ol>
+        )}
+      </div>
     </section>
   );
 }

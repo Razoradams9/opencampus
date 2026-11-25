@@ -1,4 +1,5 @@
 import { Sparkles } from "lucide-react";
+import { ArchMotif } from "./ArchMotif";
 
 /** Planned feature. No input and no button: nothing here is connected to AI. */
 export function AiAssistantTeaser() {
@@ -13,6 +14,7 @@ export function AiAssistantTeaser() {
         }}
         aria-hidden="true"
       />
+      <ArchMotif className="pointer-events-none absolute -right-16 -bottom-1 w-[20rem] text-periwinkle/[0.14]" />
       <div className="relative flex items-center justify-between">
         <span className="grid size-10 place-items-center rounded-xl bg-white/10">
           <Sparkles className="size-5 text-signal" aria-hidden="true" />
@@ -22,7 +24,7 @@ export function AiAssistantTeaser() {
         </span>
       </div>
       <div className="relative">
-        <h2 id="ai-title" className="font-display text-xl leading-tight font-medium sm:text-2xl">
+        <h2 id="ai-title" className="font-display text-2xl leading-tight font-medium sm:text-[2rem]">
           Study assistant
         </h2>
         <p className="mt-1 text-sm text-periwinkle">A tutor that knows your courses. Not connected yet.</p>

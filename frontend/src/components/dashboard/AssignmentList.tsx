@@ -5,7 +5,9 @@ import { daysBetween } from "../../lib/dates";
 import { toneStyle } from "../../lib/subjects";
 import { Highlight } from "../ui/Highlight";
 import { NoMatches } from "../ui/NoMatches";
-import { PanelHeader } from "../ui/PanelHeader";
+import { SectionHeading } from "../ui/SectionHeading";
+import { SubjectMark } from "../ui/SubjectMark";
+import { WeekLoad } from "./WeekLoad";
 
 interface AssignmentListProps {
   assignments: Assignment[];
@@ -51,23 +53,23 @@ export function AssignmentList({ assignments, allAssignments, subjects, today, q
   const hidden = sorted.length - visible.length;
 
   return (
-    <section id="tasks" aria-labelledby="assignments-title" className="oc-panel flex h-full scroll-mt-24 flex-col">
-      <PanelHeader
+    <section id="tasks" aria-labelledby="assignments-title" className="flex h-full scroll-mt-24 flex-col">
+      <SectionHeading
         id="assignments-title"
         title="Due soon"
-        tone="rose"
-        aside={
-          <span className="flex items-center gap-2" aria-live="polite">
-            <span className="hidden h-1.5 w-14 overflow-hidden rounded-full bg-subject-rose/15 sm:block" aria-hidden="true">
-              <span
-                className="block h-full rounded-full bg-success transition-[width] duration-300"
-                style={{ width: `${(done / Math.max(allAssignments.length, 1)) * 100}%` }}
-              />
-            </span>
-            {allDone ? <span className="font-medium text-success">All caught up</span> : <span>{done} of {allAssignments.length} done</span>}
+        accent="var(--oc-subject-rose)"
+        meta={
+          <span aria-live="polite">
+            {allDone ? <span className="font-semibold text-success">All caught up</span> : `${done} of ${allAssignments.length} done`}
           </span>
         }
       />
+      <div className="oc-panel flex flex-1 flex-col">
+      {!searching && (
+        <div className="border-b border-line/70 p-2 sm:p-3">
+          <WeekLoad assignments={allAssignments} subjects={subjects} today={today} />
+        </div>
+      )}
 
       {assignments.length === 0 ? (
         <NoMatches what="assignments" />
@@ -108,7 +110,7 @@ export function AssignmentList({ assignments, allAssignments, subjects, today, q
                     </span>
                     <span className="mt-0.5 flex items-center gap-2 text-xs text-ink-subtle">
                       <span className="inline-flex items-center gap-1.5 font-mono">
-                        <span className="size-2 rounded-full bg-(--tone)" aria-hidden="true" />
+                        {subject && <SubjectMark tone={subject.tone} className="size-2.5" />}
                         {subject?.code}
                       </span>
                       {a.priority === "high" && !a.done ? (
@@ -141,6 +143,7 @@ export function AssignmentList({ assignments, allAssignments, subjects, today, q
           {!expanded && <span className="sr-only">({hidden} more)</span>}
         </button>
       )}
+      </div>
     </section>
   );
 }

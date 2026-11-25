@@ -1,28 +1,30 @@
-import { ArrowRight, Moon, Sun, Sunrise } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { ScheduleItem, Subject } from "../../data/types";
 import { formatTime, greetingFor } from "../../lib/dates";
+import { SubjectMark } from "../ui/SubjectMark";
+import { ArchMotif } from "./ArchMotif";
+import { DayRail } from "./DayRail";
 
 interface WelcomeSectionProps {
   firstName: string;
   institutionName: string;
   today: Date;
+  now: Date;
+  schedule: ScheduleItem[];
+  subjects: Map<string, Subject>;
   upcoming: { item: ScheduleItem; state: "now" | "next" } | undefined;
-  subject: Subject | undefined;
   tasksDone: number;
   tasksTotal: number;
 }
 
-function TimeIcon({ hour }: { hour: number }) {
-  const Icon = hour < 12 ? Sunrise : hour < 18 ? Sun : Moon;
-  return <Icon className="size-5 text-signal" aria-hidden="true" />;
-}
-
 /**
- * Greeting plus one next step. Workload is framed as progress made
- * ("2 of 5 done"), not as a pile of what's left.
+ * The page's dominant block: who you are, what's next, and the shape of the
+ * day. Workload is framed as progress made, not as a pile.
  */
-export function WelcomeSection({ firstName, institutionName, today, upcoming, subject, tasksDone, tasksTotal }: WelcomeSectionProps) {
-  const date = today.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
+export function WelcomeSection(props: WelcomeSectionProps) {
+  const { firstName, institutionName, today, now, schedule, subjects, upcoming, tasksDone, tasksTotal } = props;
+  const date = today.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
+  const subject = upcoming ? subjects.get(upcoming.item.subjectId) : undefined;
 
   return (
     <section
@@ -30,59 +32,67 @@ export function WelcomeSection({ firstName, institutionName, today, upcoming, su
       aria-labelledby="welcome-title"
       className="oc-hero relative flex h-full scroll-mt-24 flex-col overflow-hidden px-5 pt-5 pb-6 text-white sm:px-8 sm:pt-7 sm:pb-8"
     >
-      <div className="flex items-center justify-between gap-3 font-mono text-[0.6875rem] tracking-[0.1em] text-white/85 uppercase">
-        <span className="truncate">
-          <time dateTime={today.toISOString().slice(0, 10)}>{date}</time> · {institutionName}
-        </span>
+      <ArchMotif className="pointer-events-none absolute -right-10 -bottom-2 w-[22rem] text-white/[0.13] sm:-right-6 sm:w-[30rem]" />
+
+      <div className="relative flex items-center justify-between gap-3 font-mono text-[0.6875rem] tracking-[0.1em] text-white/85 uppercase">
+        <span className="truncate">{institutionName}</span>
         <span className="shrink-0 rounded-full bg-white/15 px-2 py-0.5">Sample data</span>
       </div>
 
-      <h1
-        id="welcome-title"
-        className="mt-6 flex items-center gap-3 font-display text-[2rem] leading-tight font-medium tracking-tight sm:mt-10 sm:text-5xl"
-      >
-        <span>
-          {greetingFor(today.getHours())}, {firstName}.
-        </span>
-        <TimeIcon hour={today.getHours()} />
-      </h1>
+      <div className="relative mt-6 sm:mt-8">
+        <p className="text-sm text-white/85">
+          <time dateTime={today.toISOString().slice(0, 10)}>{date}</time>
+        </p>
+        <h1 id="welcome-title" className="mt-1 font-display text-[2.5rem] leading-[0.95] font-medium tracking-tight sm:text-[4.25rem]">
+          {greetingFor(today.getHours())},
+          <br />
+          {firstName}.
+        </h1>
+      </div>
 
-      <div className="mt-5 flex flex-wrap gap-2 sm:mt-auto sm:pt-8">
+      <div className="relative mt-6 grid grid-cols-[minmax(0,1fr)] gap-4 sm:mt-auto sm:pt-8 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] xl:items-end">
         {upcoming && subject ? (
           <a
             href="#schedule"
-            className="group oc-lift flex w-full items-center gap-3 rounded-xl bg-white px-3.5 py-2.5 text-ink shadow-e2 sm:w-auto sm:min-w-72"
+            className="group oc-lift flex items-center gap-4 rounded-xl bg-white px-4 py-3 text-ink shadow-e2"
           >
-            <span className="min-w-0 flex-1">
-              <span className="block text-xs text-ink-muted">
-                <span className="font-semibold text-hero">{upcoming.state === "now" ? "Now" : "Next"}</span> ·{" "}
-                <span className="font-mono">{formatTime(upcoming.item.start)}</span> · {upcoming.item.room}
+            <span className="font-display text-[1.625rem] leading-none font-medium tabular-nums sm:text-[2rem]">{formatTime(upcoming.item.start)}</span>
+            <span className="min-w-0 flex-1 border-l border-line pl-4">
+              <span className="flex items-center gap-1.5 text-[0.6875rem] font-semibold tracking-wide text-hero uppercase">
+                {upcoming.state === "now" ? "Happening now" : "Up next"}
               </span>
-              <span className="block truncate text-[0.9375rem] font-semibold">{subject.name}</span>
+              <span className="flex items-center gap-2 text-[0.9375rem] leading-tight font-semibold">
+                <SubjectMark tone={subject.tone} className="size-3" />
+                {subject.name}
+              </span>
+              <span className="block text-xs text-ink-muted">
+                {upcoming.item.kind} · {upcoming.item.room}
+              </span>
             </span>
             <ArrowRight className="size-4 shrink-0 text-ink-muted transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
           </a>
         ) : (
-          <span className="rounded-xl bg-white/15 px-3.5 py-2.5 text-sm">No more classes today. Enjoy the evening.</span>
+          <p className="rounded-xl bg-white/15 px-4 py-3 text-sm">No more classes today. Enjoy the evening.</p>
         )}
-        <a
-          href="#tasks"
-          className="inline-flex min-h-11 items-center gap-3 rounded-xl bg-white/15 px-3.5 py-2 text-sm transition-colors hover:bg-white/25"
-        >
-          <span
-            className="h-1.5 w-12 overflow-hidden rounded-full bg-white/25"
-            role="progressbar"
-            aria-label="Tasks completed"
-            aria-valuenow={tasksDone}
-            aria-valuemin={0}
-            aria-valuemax={tasksTotal}
-          >
-            <span className="block h-full rounded-full bg-white" style={{ width: `${tasksTotal ? (tasksDone / tasksTotal) * 100 : 0}%` }} />
-          </span>
-          <span>
-            <span className="font-semibold">{tasksDone}</span> of {tasksTotal} tasks done
-          </span>
-        </a>
+
+        <div className="space-y-3">
+          <DayRail items={schedule} subjects={subjects} now={now} />
+          <a href="#tasks" className="flex items-center gap-3 text-sm text-white/90 hover:text-white">
+            <span
+              className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/25"
+              role="progressbar"
+              aria-label="Tasks completed"
+              aria-valuenow={tasksDone}
+              aria-valuemin={0}
+              aria-valuemax={tasksTotal}
+            >
+              <span className="block h-full rounded-full bg-white" style={{ width: `${tasksTotal ? (tasksDone / tasksTotal) * 100 : 0}%` }} />
+            </span>
+            <span className="shrink-0">
+              <span className="font-semibold">{tasksDone}</span> of {tasksTotal} tasks done
+            </span>
+          </a>
+        </div>
       </div>
 
       <span className="absolute bottom-0 left-5 h-1 w-16 rounded-t-full bg-signal sm:left-8" aria-hidden="true" />

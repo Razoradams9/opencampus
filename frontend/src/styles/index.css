@@ -27,6 +27,10 @@
   --oc-accent-soft: #d6defb;
   --oc-signal: #e2683c; /* brand mark, single highlight per view (graphics) */
   --oc-signal-strong: #c2522a; /* signal behind white text (≥4.6:1) */
+  /* Warm counterweight: event poster. Deep orange for small text (5.2:1),
+     signal-strong only for large numerals (3.8:1, large-text AA). */
+  --oc-apricot: #ffe3d1;
+  --oc-apricot-ink: #a3401d;
   --oc-hero: #3a58d0; /* welcome block: white text ≥4.6:1 across the gradient */
   --oc-hero-light: #4a6ee0;
   --oc-success: #17704b;
@@ -75,6 +79,8 @@
   --color-signal: var(--oc-signal);
   --color-signal-strong: var(--oc-signal-strong);
   --color-hero: var(--oc-hero);
+  --color-apricot: var(--oc-apricot);
+  --color-apricot-ink: var(--oc-apricot-ink);
   --color-hero-light: var(--oc-hero-light);
   --color-success: var(--oc-success);
   --color-success-soft: var(--oc-success-soft);

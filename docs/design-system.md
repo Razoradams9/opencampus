@@ -1,6 +1,8 @@
 # OpenCampus design system
 
-**Bright Contemporary — intelligent, expressive, restrained.**
+**Bold Contemporary** (evolved from "Bright Contemporary"): confident colour
+blocking, editorial type, and graphics that carry information. Bold is not
+busy: every graphic answers a question a student actually has.
 
 All tokens live in `frontend/src/styles/index.css`:
 
@@ -110,3 +112,41 @@ the evidence behind each:
   the other upcoming class is a soft tint.
 - **No counters where a signal will do.** The notification bell shows a dot.
 - Motion is short, purposeful and disabled under `prefers-reduced-motion`.
+
+## Bold Contemporary (dashboard)
+
+### Composition
+Sections are **not** all the same card. Each has its own treatment:
+
+| Section | Surface | Graphic (what it tells you) |
+| ------- | ------- | --------------------------- |
+| Welcome | cobalt slab, concentric-arch motif | next-class ticket; **day rail**: today's classes as segments with an orange "now" marker (load and gaps) |
+| Study assistant | navy block, arch motif | none (planned feature) |
+| Today | white card | **proportional day view**: block height = class length; hour grid; orange now-line; one filled class |
+| Due soon | white card | **7-day workload strip**: each task as its subject's shape on its due day, hollow when done |
+| Progress | **lavender colour block** | **lesson tracks**: one segment per lesson, big percentage numeral |
+| Campus | no card: editorial list on the canvas | serif headlines, date column, category in colour |
+| Event | **apricot poster** (warm counterweight) | oversized date numeral, hall illustration |
+
+Headings sit **outside** their content as editorial titles (`SectionHeading`:
+Fraunces 28–32px with a short coloured rule and a mono meta count).
+
+### Subject identity
+`SubjectMark` gives every subject a **shape and a colour** (cobalt circle,
+teal square, amber triangle, rose diamond, violet hexagon) so subjects are
+distinguishable without colour vision. Used in the hero, timetable, workload
+strip, task rows and progress.
+
+### Colour blocking
+Cobalt (hero), navy (assistant), lavender (progress), apricot (event) and
+white (operational lists) on the sky canvas. Apricot uses `--oc-apricot-ink`
+(#a3401d, 5.2:1) for small text; `--oc-signal-strong` only for large numerals.
+
+### Type scale
+Hero greeting 40px → 68px (Fraunces, tight leading); section titles 28–32px;
+data numerals (times, dates, percentages) in Fraunces with tabular figures;
+body 15px Geist; metadata 11–12px Geist Mono. Never below 11px.
+
+### Motifs
+`ArchMotif` (concentric arches from the logo) is the single decorative
+element, drawn at 13–14% opacity on dark surfaces only.
