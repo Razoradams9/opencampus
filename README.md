@@ -27,10 +27,19 @@ No AI, coursework or faculty/admin dashboards exist yet. Security design:
 
 ## Setup
 
+```bash
+git clone https://github.com/Razoradams9/opencampus.git
+cd opencampus
+```
+
+Commands below start from the repository root, in a bash-compatible shell
+(macOS/Linux terminal, Git Bash or WSL). Windows PowerShell users: see
+[Windows (PowerShell)](#windows-powershell).
+
 ### 1. Configuration
 
 ```bash
-cd opencampus/backend
+cd backend
 cp .env.example .env
 ```
 
@@ -43,14 +52,13 @@ git-ignored; never commit it.
 With Docker:
 
 ```bash
-cd opencampus
 docker compose --env-file backend/.env up -d
 ```
 
 With a local PostgreSQL (run as a superuser):
 
 ```bash
-cd opencampus/backend
+cd backend
 set -a; . ./.env; set +a
 bash db/init/01-roles.sh --print | sudo -u postgres psql -v ON_ERROR_STOP=1
 ```
@@ -62,7 +70,7 @@ Either way this creates the `opencampus_owner` (migrations) and
 ### 3. Backend
 
 ```bash
-cd opencampus/backend
+cd backend
 python3 -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements-dev.txt
@@ -84,21 +92,62 @@ python -m app.cli create-platform-admin --email ops@example.org --name "Ops"
 ### 4. Frontend
 
 ```bash
-cd opencampus/frontend
+cd frontend
 npm install
+```
+
+## Windows (PowerShell)
+
+PowerShell 5.1 has no `&&`; run commands one per line. Requires Docker
+Desktop for Postgres. From the repository root:
+
+```powershell
+cd backend
+$gen = { python -c "import secrets;print(secrets.token_urlsafe(32))" }
+$su = & $gen; $own = & $gen; $app = & $gen; $jwt = & $gen
+@"
+OPENCAMPUS_ENV=development
+OPENCAMPUS_DB_SUPERUSER_PASSWORD=$su
+OPENCAMPUS_DB_OWNER_PASSWORD=$own
+OPENCAMPUS_DB_APP_PASSWORD=$app
+OPENCAMPUS_DATABASE_URL=postgresql+psycopg://opencampus_app:$app@127.0.0.1:5432/opencampus
+OPENCAMPUS_MIGRATION_DATABASE_URL=postgresql+psycopg://opencampus_owner:$own@127.0.0.1:5432/opencampus
+OPENCAMPUS_TEST_DATABASE_URL=postgresql+psycopg://opencampus_app:$app@127.0.0.1:5432/opencampus_test
+OPENCAMPUS_TEST_MIGRATION_DATABASE_URL=postgresql+psycopg://opencampus_owner:$own@127.0.0.1:5432/opencampus_test
+OPENCAMPUS_JWT_SECRET=$jwt
+OPENCAMPUS_COOKIE_SECURE=false
+"@ | Set-Content -Encoding ascii .env
+cd ..
+docker compose --env-file backend\.env up -d
+cd backend
+python -m venv .venv
+Set-ExecutionPolicy -Scope Process Bypass
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements-dev.txt
+alembic upgrade head
+python -m app.cli seed-demo
+uvicorn app.main:app --reload --port 8000
+```
+
+Second PowerShell window, from the repository root:
+
+```powershell
+cd frontend
+npm install
+npm run dev
 ```
 
 ## Run (development)
 
 ```bash
 # Terminal 1 — API on http://127.0.0.1:8000
-cd opencampus/backend && source .venv/bin/activate
+cd backend && source .venv/bin/activate
 uvicorn app.main:app --reload --port 8000
 ```
 
 ```bash
 # Terminal 2 — UI on http://localhost:5173
-cd opencampus/frontend
+cd frontend
 npm run dev
 ```
 
@@ -108,7 +157,7 @@ Open http://localhost:5173 and sign in or create an account (institution code
 ## Migrations
 
 ```bash
-cd opencampus/backend
+cd backend
 alembic upgrade head                               # apply
 alembic downgrade -1                               # roll back one
 alembic revision --autogenerate -m "describe it"   # new migration (review it!)
@@ -121,7 +170,7 @@ RLS, add policies and grant the app role, in the migration itself.
 ## Tests
 
 ```bash
-cd opencampus/backend && .venv/bin/python -m pytest -q
+cd backend && .venv/bin/python -m pytest -q
 ```
 
 Tests need `OPENCAMPUS_TEST_DATABASE_URL` / `OPENCAMPUS_TEST_MIGRATION_DATABASE_URL`
@@ -129,7 +178,7 @@ Tests need `OPENCAMPUS_TEST_DATABASE_URL` / `OPENCAMPUS_TEST_MIGRATION_DATABASE_
 and connects as the app role, so RLS is exercised for real.
 
 ```bash
-cd opencampus/frontend && npm run build    # type-check + production build
+cd frontend && npm run build    # type-check + production build
 ```
 
 ## API overview
