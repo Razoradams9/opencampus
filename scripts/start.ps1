@@ -206,16 +206,50 @@ if (-not (Test-Path -LiteralPath $reqStamp) -or (Get-Content -LiteralPath $reqSt
 }
 Good 'Python packages are up to date'
 
-Push-Location $Backend
-$migrated = $false
-for ($i = 0; $i -lt 10; $i++) {
-    # Right after first creation Postgres restarts once; retry briefly.
-    & $VenvPython -m alembic upgrade head
-    if ($LASTEXITCODE -eq 0) { $migrated = $true; break }
-    Start-Sleep -Seconds 3
+function Wait-Database {
+    for ($i = 0; $i -lt 60; $i++) {
+        & docker compose -f $Compose --env-file $EnvFile exec -T postgres pg_isready -U postgres *> $null
+        if ($LASTEXITCODE -eq 0) { return $true }
+        Start-Sleep -Seconds 2
+    }
+    return $false
 }
-Pop-Location
-if (-not $migrated) { Fail 'Database migration failed. See the messages above.' }
+
+# Runs migrations quietly; returns 'ok', 'auth' (password mismatch) or 'error'.
+function Invoke-Migrations {
+    Push-Location $Backend
+    $result = 'error'
+    for ($i = 0; $i -lt 10; $i++) {
+        # Right after first creation Postgres restarts once; retry briefly.
+        $script:migrationOutput = & $VenvPython -m alembic upgrade head 2>&1 | Out-String
+        if ($LASTEXITCODE -eq 0) { $result = 'ok'; break }
+        if ($script:migrationOutput -match 'password authentication failed') { $result = 'auth'; break }
+        Start-Sleep -Seconds 3
+    }
+    Pop-Location
+    return $result
+}
+
+$migration = Invoke-Migrations
+if ($migration -eq 'auth') {
+    Write-Host ''
+    Write-Host '    The local database was created by an earlier OpenCampus setup, with different' -ForegroundColor Yellow
+    Write-Host '    passwords than this folder''s backend\.env. Two ways to fix it:' -ForegroundColor Yellow
+    Write-Host '      Y = reset the local database now (deletes local test data such as demo accounts)'
+    Write-Host '      N = stop, so you can copy your old backend\.env into this folder and run again'
+    $answer = Read-Host '    Reset the local database? [y/N]'
+    if ($answer -notmatch '^(y|yes)$') { Fail 'Stopped without changes. Copy your previous backend\.env here, then start again.' }
+    Info 'Resetting the local database...'
+    & docker compose -f $Compose --env-file $EnvFile down -v
+    & docker compose -f $Compose --env-file $EnvFile up -d
+    if ($LASTEXITCODE -ne 0 -or -not (Wait-Database)) { Fail 'Could not recreate the database. Check Docker Desktop.' }
+    Remove-Item -LiteralPath $SeedFlag -Force -ErrorAction SilentlyContinue  # offer demo accounts again
+    $migration = Invoke-Migrations
+}
+if ($migration -ne 'ok') {
+    Write-Host $script:migrationOutput
+    Fail 'Database migration failed. The details are above.'
+}
 Good 'Database schema is up to date'
 
 # ---------------------------------------------------------------- 5. Frontend
