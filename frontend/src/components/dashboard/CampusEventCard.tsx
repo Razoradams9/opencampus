@@ -16,7 +16,7 @@ export function CampusEventCard({ event, today, query }: CampusEventCardProps) {
   const daysAway = daysBetween(today, event.date);
 
   return (
-    <section aria-labelledby="event-title" className="oc-panel grid overflow-hidden sm:grid-cols-[1fr_1.1fr]">
+    <section aria-labelledby="event-title" className="oc-panel grid overflow-hidden border-t-[3px] border-t-signal sm:grid-cols-[1fr_1.1fr]">
       <div className="flex flex-col px-5 py-5 sm:px-6 sm:py-6">
         <p className="oc-eyebrow">Upcoming event · in {daysAway} days</p>
 
@@ -62,7 +62,7 @@ export function CampusEventCard({ event, today, query }: CampusEventCardProps) {
         </dl>
       </div>
 
-      <div className="oc-blueprint flex items-end justify-center border-t border-line bg-periwinkle/25 px-4 pt-6 sm:border-t-0 sm:border-l">
+      <div className="oc-blueprint-wash flex items-end justify-center border-t border-line px-4 pt-6 sm:border-t-0 sm:border-l">
         <CampusIllustration className="w-full max-w-xs" />
       </div>
     </section>

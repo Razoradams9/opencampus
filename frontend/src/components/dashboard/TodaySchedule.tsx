@@ -43,6 +43,7 @@ export function TodaySchedule({ items, subjects, now, totalCount, query }: Today
         id="schedule-title"
         index="Timetable"
         title="Today's schedule"
+        tone="teal"
         aside={<span className="text-xs text-ink-subtle">{totalCount} {totalCount === 1 ? "class" : "classes"}</span>}
       />
 

@@ -46,6 +46,7 @@ export function AssignmentList({ assignments, allAssignments, subjects, today, q
         id="assignments-title"
         index="Assignments"
         title="Due soon"
+        tone="rose"
         aside={
           <span className="font-mono text-xs text-ink-subtle" aria-live="polite">
             {done}/{allAssignments.length} done

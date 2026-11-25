@@ -64,7 +64,7 @@ export function Sidebar({ open, onClose, me, onSwitchInstitution, onLogout }: Si
 
       <aside
         id="oc-sidebar"
-        className={`fixed inset-y-0 left-0 z-40 flex w-(--oc-sidebar-width) flex-col border-r border-line bg-surface transition-[translate,visibility] duration-200 lg:visible lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-(--oc-sidebar-width) flex-col border-r border-line-strong/60 bg-sidebar transition-[translate,visibility] duration-200 lg:visible lg:translate-x-0 ${
           open ? "visible translate-x-0" : "invisible -translate-x-full"
         }`}
         aria-label="Sidebar"
@@ -90,10 +90,9 @@ export function Sidebar({ open, onClose, me, onSwitchInstitution, onLogout }: Si
             to="/"
             aria-current="page"
             onClick={onClose}
-            className="relative flex items-center gap-3 rounded-oc bg-accent-soft px-3 py-2 text-sm font-medium text-accent"
+            className="flex items-center gap-3 rounded-oc bg-ink px-3 py-2 text-sm font-medium text-surface"
           >
-            <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-accent" aria-hidden="true" />
-            <Home className="size-4" aria-hidden="true" />
+            <Home className="size-4 text-periwinkle" aria-hidden="true" />
             Home
           </Link>
 

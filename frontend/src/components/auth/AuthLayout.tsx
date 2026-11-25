@@ -17,10 +17,10 @@ interface AuthLayoutProps {
 export function AuthLayout({ eyebrow, title, intro, children, footer }: AuthLayoutProps) {
   return (
     <div className="grid min-h-dvh lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-      <aside className="oc-blueprint relative hidden flex-col justify-between overflow-hidden border-r border-line bg-surface px-10 py-9 lg:flex">
+      <aside className="oc-blueprint-wash relative hidden flex-col justify-between overflow-hidden border-r border-line-strong/60 px-10 py-9 lg:flex">
         <BrandMark />
         <div>
-          <p className="oc-eyebrow">Open-source academic platform</p>
+          <p className="oc-eyebrow text-ink-muted">Open-source academic platform</p>
           <p className="mt-4 max-w-sm font-display text-[2.5rem] leading-[1.08] font-medium tracking-tight">
             Many colleges.
             <br />

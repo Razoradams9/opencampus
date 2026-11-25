@@ -1,18 +1,21 @@
 import { BrainCircuit, CalendarRange, FileUp, MessageSquareText } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import type { SubjectTone } from "../../data/types";
+import { toneStyle } from "../../lib/subjects";
 import { SoonTag } from "../ui/SoonTag";
 
 interface QuickAction {
   label: string;
   hint: string;
   icon: LucideIcon;
+  tone: SubjectTone;
 }
 
 const ACTIONS: QuickAction[] = [
-  { label: "Upload notes", hint: "Add lecture notes to a subject", icon: FileUp },
-  { label: "Generate quiz", hint: "Practise from your notes", icon: BrainCircuit },
-  { label: "Plan study", hint: "Block time around deadlines", icon: CalendarRange },
-  { label: "Ask AI", hint: "Get help with a concept", icon: MessageSquareText },
+  { label: "Upload notes", hint: "Add lecture notes to a subject", icon: FileUp, tone: "cobalt" },
+  { label: "Generate quiz", hint: "Practise from your notes", icon: BrainCircuit, tone: "teal" },
+  { label: "Plan study", hint: "Block time around deadlines", icon: CalendarRange, tone: "rose" },
+  { label: "Ask AI", hint: "Get help with a concept", icon: MessageSquareText, tone: "violet" },
 ];
 
 /**
@@ -29,16 +32,18 @@ export function QuickActions() {
         <p className="text-xs text-ink-subtle">Arriving in later releases</p>
       </div>
       <ul className="grid grid-cols-2 border-t border-l border-line lg:grid-cols-4">
-        {ACTIONS.map(({ label, hint, icon: Icon }) => (
-          <li key={label} className="border-r border-b border-line">
+        {ACTIONS.map(({ label, hint, icon: Icon, tone }) => (
+          <li key={label} className="border-r border-b border-line" style={toneStyle(tone)}>
             <button
               type="button"
               disabled
               aria-describedby="quick-actions-title"
-              className="flex h-full w-full cursor-not-allowed flex-col items-start gap-3 bg-surface/60 p-4 text-left sm:p-5"
+              className="flex h-full w-full cursor-not-allowed flex-col items-start gap-3 bg-surface/75 p-4 text-left sm:p-5"
             >
               <span className="flex w-full items-center justify-between">
-                <Icon className="size-5 text-ink-subtle" aria-hidden="true" />
+                <span className="grid size-9 place-items-center bg-(--tone)/12 text-(--tone)" aria-hidden="true">
+                  <Icon className="size-[1.125rem]" />
+                </span>
                 <SoonTag />
               </span>
               <span>

@@ -20,15 +20,15 @@ const CATEGORY_STYLE: Record<UpdateCategory, string> = {
 export function CampusUpdates({ updates, today, query }: CampusUpdatesProps) {
   return (
     <section aria-labelledby="updates-title" className="oc-panel flex flex-col">
-      <PanelHeader id="updates-title" index="Campus" title="Campus updates" />
+      <PanelHeader id="updates-title" index="Campus" title="Campus updates" tone="violet" />
 
       {updates.length === 0 ? (
         <NoMatches what="updates" />
       ) : (
         <ul className="divide-y divide-line">
           {updates.map((u) => (
-            <li key={u.id} className={`relative px-5 py-4 sm:px-6 ${u.important ? "bg-lavender/35" : ""}`}>
-              {u.important && <span className="absolute inset-y-0 left-0 w-0.5 bg-accent" aria-hidden="true" />}
+            <li key={u.id} className={`relative px-5 py-4 sm:px-6 ${u.important ? "bg-lavender/45" : ""}`}>
+              {u.important && <span className="absolute inset-y-0 left-0 w-[3px] bg-subject-violet" aria-hidden="true" />}
               <article>
                 <div className="flex items-center justify-between gap-3">
                   <p className={`font-mono text-[0.6875rem] font-medium tracking-[0.08em] uppercase ${CATEGORY_STYLE[u.category]}`}>

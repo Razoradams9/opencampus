@@ -12,8 +12,9 @@ All tokens live in `frontend/src/styles/index.css`:
 
 | Role            | Token                  | Use                                        |
 | --------------- | ---------------------- | ------------------------------------------ |
-| Canvas          | `--oc-canvas`          | page background (pale sky, not white)      |
-| Surface         | `--oc-surface`         | panels, sidebar                            |
+| Canvas          | `--oc-canvas`          | page background (saturated sky, not white) |
+| Sidebar         | `--oc-sidebar`         | periwinkle-tinted navigation surface       |
+| Surface         | `--oc-surface`         | panels (kept near-white for reading)       |
 | Sunken          | `--oc-surface-sunken`  | hover wells                                |
 | Periwinkle      | `--oc-periwinkle`      | brand mark, supporting fills               |
 | Lavender        | `--oc-lavender`        | reserved secondary tint                    |
@@ -22,7 +23,7 @@ All tokens live in `frontend/src/styles/index.css`:
 | Accent          | `--oc-accent`          | interactive only: links, focus, active nav |
 | Signal          | `--oc-signal`          | one warm highlight per view, brand door    |
 | Status          | success / danger / pending (+ `-soft`) | state, never decoration    |
-| Subject         | `--oc-subject-{cobalt,teal,amber,rose}` | identifies one subject across progress, schedule and assignments |
+| Subject / section | `--oc-subject-{cobalt,teal,amber,rose,violet}` | identifies a subject across progress, schedule and assignments; also each dashboard section's accent |
 
 All text colours meet WCAG AA (≥4.5:1) on canvas and surface; `--oc-signal`
 is for graphics only, never text.
@@ -46,8 +47,12 @@ is for graphics only, never text.
 - Priority and state are always shown as text as well as colour.
 - Asymmetric 12-column grid on desktop (e.g. 7/5 splits); stacks on mobile.
 - Sections are indexed editorially (`01 — Overview`, `2.1`).
-- `.oc-blueprint` is the single architectural motif: a faint 24/96px grid,
-  used once per view.
+- `.oc-blueprint` is the architectural motif: a faint 24/96px grid.
+  `.oc-blueprint-wash` lays it over a periwinkle→lavender wash; use it only
+  for hero surfaces (welcome, event illustration, sign-in panel).
+- Section accents: `PanelHeader tone=…` adds a 3px top rule, a 7% tinted band
+  and a coloured index. Academics = cobalt, timetable = teal,
+  assignments = rose, campus = violet, event = signal.
 - Breakpoints: sidebar is fixed at ≥1024px (`lg`), a drawer below.
 - Motion only for state changes (drawer, spinner); honours
   `prefers-reduced-motion`.

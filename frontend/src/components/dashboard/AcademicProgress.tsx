@@ -23,7 +23,7 @@ function ProgressBar({ subject }: { subject: Subject }) {
       aria-valuemin={0}
       aria-valuemax={100}
       aria-label={`${subject.name} progress`}
-      className="h-1.5 w-full bg-sunken"
+      className="h-2 w-full bg-(--tone)/15"
       style={toneStyle(subject.tone)}
     >
       <div className="h-full bg-(--tone)" style={{ width: `${subject.progress}%` }} />
@@ -40,11 +40,12 @@ export function AcademicProgress({ subjects, featured, totalCount, query }: Acad
         id="progress-title"
         index="Academics"
         title="Academic progress"
+        tone="cobalt"
         aside={<span className="text-xs text-ink-subtle">{totalCount} enrolled</span>}
       />
 
       {showFeatured && featured && (
-        <div className="border-b border-line bg-accent-soft/40 px-5 py-5 sm:px-6" style={toneStyle(featured.tone)}>
+        <div className="border-b border-line bg-accent-soft/60 px-5 py-5 sm:px-6" style={toneStyle(featured.tone)}>
           <p className="oc-eyebrow">Next lesson</p>
           <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
             <div>

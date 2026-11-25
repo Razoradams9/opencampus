@@ -1,6 +1,6 @@
 /** Types for the student dashboard. Shaped so a future API can return them as-is. */
 
-export type SubjectTone = "cobalt" | "teal" | "amber" | "rose";
+export type SubjectTone = "cobalt" | "teal" | "amber" | "rose" | "violet";
 
 export interface Subject {
   id: string;

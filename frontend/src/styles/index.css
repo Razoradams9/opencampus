@@ -7,23 +7,24 @@
  * text-ink, border-line, font-display, ...). Change a colour here, once.
  */
 :root {
-  /* Surfaces — pale sky to periwinkle, never pure white */
-  --oc-canvas: #eaf0fa;
-  --oc-surface: #f6f8fd;
-  --oc-surface-sunken: #dfe6f6;
-  --oc-periwinkle: #c9d3f5;
-  --oc-lavender: #e6e2f6;
+  /* Surfaces — saturated sky, periwinkle sidebar, near-white panels for reading */
+  --oc-canvas: #d9e5fb;
+  --oc-sidebar: #e3e8fc;
+  --oc-surface: #f7f9ff;
+  --oc-surface-sunken: #cfdaf5;
+  --oc-periwinkle: #b9c6f4;
+  --oc-lavender: #ddd4f8;
 
   /* Ink — deep navy scale */
   --oc-ink: #13204a;
   --oc-ink-muted: #46527d;
-  --oc-ink-subtle: #5a6690; /* ≥4.9:1 on canvas */
-  --oc-line: #d2daef;
-  --oc-line-strong: #b4c0e3;
+  --oc-ink-subtle: #4f5b87; /* ≥5.2:1 on canvas, ≥6:1 on surface */
+  --oc-line: #c6d2f0;
+  --oc-line-strong: #a6b5e2;
 
   /* Accents — used sparingly, each with a job */
   --oc-accent: #3550c8; /* interactive: links, focus, active nav */
-  --oc-accent-soft: #dfe5fb;
+  --oc-accent-soft: #d6defb;
   --oc-signal: #e2683c; /* brand mark, single highlight per view */
   --oc-success: #17704b;
   --oc-success-soft: #d9efe5;
@@ -34,9 +35,10 @@
 
   /* Subject coding — identifies a subject across progress, schedule and tasks */
   --oc-subject-cobalt: #3550c8;
-  --oc-subject-teal: #137a7f;
-  --oc-subject-amber: #a8650d;
-  --oc-subject-rose: #b4416b;
+  --oc-subject-teal: #0e6b70;
+  --oc-subject-amber: #92560a;
+  --oc-subject-rose: #b23a66;
+  --oc-subject-violet: #6346c0;
 
   /* Layout */
   --oc-sidebar-width: 15.5rem;
@@ -46,6 +48,7 @@
 
 @theme {
   --color-canvas: var(--oc-canvas);
+  --color-sidebar: var(--oc-sidebar);
   --color-surface: var(--oc-surface);
   --color-sunken: var(--oc-surface-sunken);
   --color-periwinkle: var(--oc-periwinkle);
@@ -68,6 +71,7 @@
   --color-subject-teal: var(--oc-subject-teal);
   --color-subject-amber: var(--oc-subject-amber);
   --color-subject-rose: var(--oc-subject-rose);
+  --color-subject-violet: var(--oc-subject-violet);
 
   --font-display: "Fraunces", ui-serif, Georgia, serif;
   --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
@@ -104,6 +108,23 @@
   .oc-mark {
     @apply rounded-[2px] bg-lavender text-ink;
     box-shadow: inset 0 -2px 0 var(--oc-accent);
+  }
+
+  /* Blueprint grid over a periwinkle-to-lavender wash: hero surfaces only. */
+  .oc-blueprint-wash {
+    background-color: var(--oc-periwinkle);
+    background-image:
+      linear-gradient(to right, rgb(53 80 200 / 0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(53 80 200 / 0.08) 1px, transparent 1px),
+      linear-gradient(to right, rgb(53 80 200 / 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(53 80 200 / 0.05) 1px, transparent 1px),
+      linear-gradient(125deg, #c4d0f8 0%, #cfcaf6 55%, #ddd0f6 100%);
+    background-size:
+      96px 96px,
+      96px 96px,
+      24px 24px,
+      24px 24px,
+      100% 100%;
   }
 
   /* Architectural blueprint grid: faint 24px lines with a stronger 96px rhythm. */

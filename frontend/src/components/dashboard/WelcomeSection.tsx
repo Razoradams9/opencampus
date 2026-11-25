@@ -15,13 +15,13 @@ export function WelcomeSection({ firstName, roleLabel, institutionName, today, c
   return (
     <section
       aria-labelledby="welcome-title"
-      className="oc-blueprint relative overflow-hidden border border-line bg-surface px-6 pt-7 pb-9 sm:px-9 sm:pt-8 sm:pb-11"
+      className="oc-blueprint-wash relative overflow-hidden border border-line-strong/70 px-6 pt-7 pb-9 sm:px-9 sm:pt-8 sm:pb-11"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="oc-eyebrow">
+        <p className="oc-eyebrow text-ink-muted">
           <time dateTime={today.toISOString().slice(0, 10)}>{date}</time>
         </p>
-        <p className="oc-eyebrow">
+        <p className="oc-eyebrow text-ink-muted">
           {roleLabel} · {institutionName}
         </p>
       </div>
@@ -38,7 +38,7 @@ export function WelcomeSection({ firstName, roleLabel, institutionName, today, c
         <strong className="font-semibold text-ink">
           {dueThisWeek} {dueThisWeek === 1 ? "assignment" : "assignments"} due this week
         </strong>{" "}
-        <span className="text-ink-subtle">(sample timetable)</span>.
+        <span className="text-ink-muted">(sample timetable)</span>.
       </p>
 
       {/* The single warm accent on the page */}
