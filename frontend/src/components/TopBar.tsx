@@ -1,4 +1,4 @@
-import { Menu, Palette, Search, X } from "lucide-react";
+import { Menu, Search, X } from "lucide-react";
 import { useEffect, useRef, useState, type RefObject } from "react";
 import type { CampusUpdate } from "../data/types";
 import type { ConnectionState } from "../lib/useBackendHealth";
@@ -139,15 +139,6 @@ export function TopBar({ onMenuClick, menuOpen, connection, query, onQueryChange
             <Search className="size-[1.125rem]" aria-hidden="true" />
           </button>
           <NotificationsMenu items={notifications} today={today} />
-          <button
-            type="button"
-            disabled
-            title="Theme and display settings are not available yet"
-            aria-label="Theme and settings (not available yet)"
-            className="hidden size-9 cursor-not-allowed place-items-center rounded-oc text-ink-subtle/70 sm:grid"
-          >
-            <Palette className="size-[1.125rem]" aria-hidden="true" />
-          </button>
         </div>
       </div>
 

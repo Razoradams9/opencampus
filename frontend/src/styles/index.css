@@ -7,53 +7,63 @@
  * text-ink, border-line, font-display, ...). Change a colour here, once.
  */
 :root {
-  /* Surfaces — saturated sky, periwinkle sidebar, near-white panels for reading */
-  --oc-canvas: #c8d8f7;
-  --oc-sidebar: #d4ddfa;
-  --oc-surface: #f7f9ff;
-  --oc-surface-sunken: #cfdaf5;
-  --oc-periwinkle: #b9c6f4;
-  --oc-lavender: #ddd4f8;
+  /*
+   * Three-hue composition:
+   *   1. Slate-navy  — canvas, standard cards, topbar
+   *   2. Sage-teal   — sidebar, hero/welcome, academic-progress panel
+   *   3. Warm sand   — event card, campus-updates strip
+   */
 
-  /* Ink — deep navy scale */
-  --oc-ink: #13204a;
-  --oc-ink-muted: #46527d;
-  --oc-ink-subtle: #4f5b87; /* ≥5.2:1 on canvas, ≥6:1 on surface */
-  --oc-line: #c6d2f0;
-  --oc-line-strong: #a6b5e2;
+  /* — Slate-navy family (canvas, cards) — */
+  --oc-canvas: #10151f;
+  --oc-surface: #1b2230;
+  --oc-surface-sunken: #131826;
+  --oc-periwinkle: #26304a;
+  --oc-line: #212a3e;
+  --oc-line-strong: #2d3a55;
+
+  /* — Sage-teal family (sidebar, hero, progress panel) — */
+  --oc-sidebar: #182623;
+  --oc-lavender: #1c2b27;   /* AcademicProgress panel */
+  --oc-hero: #1f3a34;       /* welcome block: white text ≥12:1 */
+  --oc-hero-light: #2a4f45; /* gradient end */
+
+  /* — Warm sand family (event card, campus updates) — */
+  --oc-apricot: #2b241c;
+  --oc-apricot-ink: #f0c9a6; /* warm foreground; on #2b241c ≈ 9.5:1 */
+  --oc-apricot-soft: #242019; /* CampusUpdates panel */
+
+  /* Ink — bumped for the new surfaces */
+  --oc-ink: #e8edf7;
+  --oc-ink-muted: #93a7c4;   /* ≥5.9:1 on every family background */
+  --oc-ink-subtle: #7d92b8;  /* 5.0:1 on surface; use ink-muted for body copy on sage */
 
   /* Accents — used sparingly, each with a job */
-  --oc-accent: #3550c8; /* interactive: links, focus, active nav */
-  --oc-accent-soft: #d6defb;
-  --oc-signal: #e2683c; /* brand mark, single highlight per view (graphics) */
-  --oc-signal-strong: #c2522a; /* signal behind white text (≥4.6:1) */
-  /* Warm counterweight: event poster. Deep orange for small text (5.2:1),
-     signal-strong only for large numerals (3.8:1, large-text AA). */
-  --oc-apricot: #ffe3d1;
-  --oc-apricot-ink: #a3401d;
-  --oc-hero: #3a58d0; /* welcome block: white text ≥4.6:1 across the gradient */
-  --oc-hero-light: #4a6ee0;
-  --oc-success: #17704b;
-  --oc-success-soft: #d9efe5;
-  --oc-danger: #b83a33;
-  --oc-danger-soft: #f6dedc;
-  --oc-pending: #855a0c;
-  --oc-pending-soft: #f4ead2;
+  --oc-accent: #4f7bff; /* interactive: links, focus, active nav */
+  --oc-accent-soft: #1a2a4a;
+  --oc-signal: #f07348; /* brand mark, single highlight per view (graphics) */
+  --oc-signal-strong: #e05a30; /* signal behind white text (≥4.6:1) */
+
+  --oc-success: #22c55e;
+  --oc-success-soft: #0f2a1a;
+  --oc-danger: #f87171;
+  --oc-danger-soft: #2a1010;
+  --oc-pending: #fbbf24;
+  --oc-pending-soft: #2a2008;
 
   /* Subject coding — identifies a subject across progress, schedule and tasks */
-  --oc-subject-cobalt: #3550c8;
-  --oc-subject-teal: #0e6b70;
-  --oc-subject-amber: #92560a;
-  --oc-subject-rose: #b23a66;
-  --oc-subject-violet: #6346c0;
+  --oc-subject-cobalt: #4f7bff;
+  --oc-subject-teal: #3ecfc4;  /* bluer/brighter so it shows on sage panels */
+  --oc-subject-amber: #fbbf24;
+  --oc-subject-rose: #fb7185;
+  --oc-subject-violet: #a78bfa;
 
-  /* Elevation — one light source from above; higher = larger, softer shadow.
-     Shadows are navy-tinted, never grey, so they sit naturally on blue. */
-  --oc-shadow-1: 0 1px 2px rgb(19 32 74 / 0.06), 0 4px 14px -4px rgb(19 32 74 / 0.12);
-  --oc-shadow-2: 0 2px 4px rgb(19 32 74 / 0.06), 0 12px 28px -10px rgb(19 32 74 / 0.28);
-  --oc-shadow-3: 0 4px 8px rgb(19 32 74 / 0.08), 0 24px 48px -16px rgb(19 32 74 / 0.35);
-  /* Top-edge highlight: makes a raised surface read as lit from above. */
-  --oc-highlight: inset 0 1px 0 rgb(255 255 255 / 0.7);
+  /* Elevation — softer, less spread */
+  --oc-shadow-1: 0 1px 2px rgb(0 0 0 / 0.25), 0 3px 10px -4px rgb(0 0 0 / 0.35);
+  --oc-shadow-2: 0 2px 4px rgb(0 0 0 / 0.28), 0 8px 20px -10px rgb(0 0 0 / 0.45);
+  --oc-shadow-3: 0 4px 8px rgb(0 0 0 / 0.3), 0 16px 36px -14px rgb(0 0 0 / 0.55);
+  /* Top-edge highlight: subtle glow on raised dark surfaces. */
+  --oc-highlight: inset 0 1px 0 rgb(255 255 255 / 0.08);
 
   /* Layout */
   --oc-sidebar-width: 15.5rem;
@@ -81,6 +91,7 @@
   --color-hero: var(--oc-hero);
   --color-apricot: var(--oc-apricot);
   --color-apricot-ink: var(--oc-apricot-ink);
+  --color-apricot-soft: var(--oc-apricot-soft);
   --color-hero-light: var(--oc-hero-light);
   --color-success: var(--oc-success);
   --color-success-soft: var(--oc-success-soft);
@@ -111,11 +122,12 @@
   }
   body {
     @apply font-sans text-ink;
-    /* Soft "daylight" from the top-left gives the canvas depth. */
+    /* Three-hue composition: sage glow (top-left, over sidebar/hero band) +
+       faint warm glow (bottom-right, over campus corner). Two radials max. */
     background-color: var(--oc-canvas);
     background-image:
-      radial-gradient(60rem 40rem at 10% -10%, rgb(255 255 255 / 0.55), transparent 60%),
-      radial-gradient(50rem 40rem at 110% 20%, rgb(221 212 248 / 0.6), transparent 60%);
+      radial-gradient(80rem 55rem at 20% -15%, rgb(42 79 69 / 0.28), transparent 65%),
+      radial-gradient(45rem 35rem at 95% 85%, rgb(70 56 38 / 0.10), transparent 60%);
     background-attachment: fixed;
   }
   :focus-visible {
@@ -157,14 +169,14 @@
 
   /* Search hit highlight. */
   .oc-mark {
-    @apply rounded-[2px] bg-lavender text-ink;
+    @apply rounded-[2px] bg-periwinkle text-ink;
     box-shadow: inset 0 -2px 0 var(--oc-accent);
   }
 
-  /* Welcome block: friendly blue with the blueprint grid drawn in white. */
+  /* Welcome block: friendly sage with the blueprint grid drawn in white. */
   .oc-hero {
     border-radius: var(--oc-radius-card);
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 18px 40px -18px rgb(58 88 208 / 0.65);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 18px 40px -18px rgb(20 60 50 / 0.65);
     background-color: var(--oc-hero);
     background-image:
       linear-gradient(to right, rgb(255 255 255 / 0.07) 1px, transparent 1px),
@@ -190,15 +202,15 @@
     display: none;
   }
 
-  /* Blueprint grid over a periwinkle-to-lavender wash: hero surfaces only. */
+  /* Blueprint grid over a deep sage wash: auth aside. */
   .oc-blueprint-wash {
-    background-color: var(--oc-periwinkle);
+    background-color: var(--oc-sidebar);
     background-image:
-      linear-gradient(to right, rgb(53 80 200 / 0.08) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(53 80 200 / 0.08) 1px, transparent 1px),
-      linear-gradient(to right, rgb(53 80 200 / 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(53 80 200 / 0.05) 1px, transparent 1px),
-      linear-gradient(125deg, #c4d0f8 0%, #cfcaf6 55%, #ddd0f6 100%);
+      linear-gradient(to right, rgb(255 255 255 / 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.05) 1px, transparent 1px),
+      linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+      linear-gradient(125deg, #16211e 0%, #1a2823 55%, #1e2f29 100%);
     background-size:
       96px 96px,
       96px 96px,
@@ -210,10 +222,10 @@
   /* Architectural blueprint grid: faint 24px lines with a stronger 96px rhythm. */
   .oc-blueprint {
     background-image:
-      linear-gradient(to right, rgb(53 80 200 / 0.07) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(53 80 200 / 0.07) 1px, transparent 1px),
-      linear-gradient(to right, rgb(53 80 200 / 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(53 80 200 / 0.05) 1px, transparent 1px);
+      linear-gradient(to right, rgb(79 123 255 / 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(79 123 255 / 0.05) 1px, transparent 1px),
+      linear-gradient(to right, rgb(79 123 255 / 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(79 123 255 / 0.03) 1px, transparent 1px);
     background-size:
       96px 96px,
       96px 96px,

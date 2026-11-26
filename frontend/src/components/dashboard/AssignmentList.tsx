@@ -7,7 +7,6 @@ import { Highlight } from "../ui/Highlight";
 import { NoMatches } from "../ui/NoMatches";
 import { SectionHeading } from "../ui/SectionHeading";
 import { SubjectMark } from "../ui/SubjectMark";
-import { WeekLoad } from "./WeekLoad";
 
 interface AssignmentListProps {
   assignments: Assignment[];
@@ -65,12 +64,6 @@ export function AssignmentList({ assignments, allAssignments, subjects, today, q
         }
       />
       <div className="oc-panel flex flex-1 flex-col">
-      {!searching && (
-        <div className="border-b border-line/70 p-2 sm:p-3">
-          <WeekLoad assignments={allAssignments} subjects={subjects} today={today} />
-        </div>
-      )}
-
       {assignments.length === 0 ? (
         <NoMatches what="assignments" />
       ) : (
@@ -113,11 +106,6 @@ export function AssignmentList({ assignments, allAssignments, subjects, today, q
                         {subject && <SubjectMark tone={subject.tone} className="size-2.5" />}
                         {subject?.code}
                       </span>
-                      {a.priority === "high" && !a.done ? (
-                        <span className="rounded-full bg-pending-soft px-2 py-px font-medium text-pending">Priority</span>
-                      ) : (
-                        <span className="sr-only">{a.priority} priority</span>
-                      )}
                     </span>
                   </span>
 

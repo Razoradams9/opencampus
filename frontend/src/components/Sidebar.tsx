@@ -2,12 +2,8 @@ import {
   BookOpen,
   CalendarRange,
   ClipboardList,
-  FolderOpen,
   Home,
   LogOut,
-  NotebookPen,
-  Sparkles,
-  Trees,
   X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -22,14 +18,10 @@ interface NavItem {
   icon: LucideIcon;
 }
 
-// Modules are listed so the product's shape is visible; none exist yet.
+// Three modules shown as a brief preview of what is coming.
 const UPCOMING: NavItem[] = [
   { label: "Academics", icon: BookOpen },
   { label: "Assignments", icon: ClipboardList },
-  { label: "Resources", icon: FolderOpen },
-  { label: "AI Assistant", icon: Sparkles },
-  { label: "Campus Life", icon: Trees },
-  { label: "Notes", icon: NotebookPen },
   { label: "Planner", icon: CalendarRange },
 ];
 

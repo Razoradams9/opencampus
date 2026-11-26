@@ -17,7 +17,7 @@ const CATEGORY_STYLE: Record<UpdateCategory, string> = {
   "Campus life": "text-subject-rose",
 };
 
-/** Editorial headline list set straight on the page, not in a card. */
+/** Editorial headline list set on a warm panel. */
 export function CampusUpdates({ updates, today, query }: CampusUpdatesProps) {
   return (
     <section id="campus" aria-labelledby="updates-title" className="flex h-full scroll-mt-24 flex-col">
@@ -26,9 +26,9 @@ export function CampusUpdates({ updates, today, query }: CampusUpdatesProps) {
       {updates.length === 0 ? (
         <NoMatches what="updates" />
       ) : (
-        <ul className="border-t-2 border-ink">
+        <ul className="rounded-card bg-apricot-soft p-4 sm:p-5">
           {updates.map((u) => (
-            <li key={u.id} className="grid grid-cols-[4.25rem_1fr] gap-3 border-b border-ink/15 py-3.5">
+            <li key={u.id} className="grid grid-cols-[4.25rem_1fr] gap-3 border-b border-ink/10 py-3.5 first:pt-0 last:border-0 last:pb-0">
               <time dateTime={u.date.toISOString().slice(0, 10)} className="pt-0.5 font-mono text-xs text-ink-muted">
                 {formatRelativeDay(u.date, today)}
               </time>
@@ -38,11 +38,13 @@ export function CampusUpdates({ updates, today, query }: CampusUpdatesProps) {
                     <Highlight text={u.category} query={query} />
                   </span>
                   {u.important && (
-                    <span className="inline-flex items-center gap-1 text-subject-violet">
-                      <span className="size-1.5 rounded-full bg-subject-violet" aria-hidden="true" />
-                      Important
-                    </span>
+                    <span
+                      className="size-1.5 rounded-full bg-subject-violet"
+                      aria-hidden="true"
+                      title="Important"
+                    />
                   )}
+                  {u.important && <span className="sr-only">Important</span>}
                 </p>
                 <h3 className="mt-1 font-display text-[1.1875rem] leading-snug font-medium tracking-tight">
                   <Highlight text={u.title} query={query} />
