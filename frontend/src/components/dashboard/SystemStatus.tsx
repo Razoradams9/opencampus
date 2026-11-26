@@ -37,7 +37,7 @@ export function SystemStatus({ health }: { health: BackendHealth }) {
           type="button"
           onClick={refresh}
           disabled={state === "checking"}
-          className="oc-press inline-flex items-center gap-1.5 rounded-oc px-2 py-1 text-xs font-medium text-accent hover:bg-accent-soft disabled:cursor-wait disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 rounded-oc px-2 py-1 text-xs font-medium text-accent hover:bg-accent-soft disabled:cursor-wait disabled:opacity-60"
         >
           <RefreshCw className={`size-3.5 ${state === "checking" ? "animate-spin" : ""}`} aria-hidden="true" />
           Recheck

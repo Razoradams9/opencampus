@@ -63,7 +63,7 @@ export function Sidebar({ open, onClose, me, onSwitchInstitution, onLogout }: Si
 
       <aside
         id="oc-sidebar"
-        className={`fixed inset-y-0 left-0 z-40 flex w-(--oc-sidebar-width) flex-col border-r border-line-strong/60 bg-sidebar transition-[translate,visibility] duration-(--oc-dur-ui) ease-(--oc-ease-standard) lg:visible lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-(--oc-sidebar-width) flex-col border-r border-line-strong/60 bg-sidebar transition-[translate,visibility] duration-200 lg:visible lg:translate-x-0 ${
           open ? "visible translate-x-0" : "invisible -translate-x-full"
         }`}
         aria-label="Sidebar"

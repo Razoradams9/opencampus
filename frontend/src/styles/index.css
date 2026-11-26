@@ -55,18 +55,6 @@
   /* Top-edge highlight: makes a raised surface read as lit from above. */
   --oc-highlight: inset 0 1px 0 rgb(255 255 255 / 0.7);
 
-  /* Motion: fast, precise, transform/opacity only.
-     instant = press feedback · micro = hovers, toggles · ui = panels, menus,
-     state changes · enter = first-paint sequences and chart fills. */
-  --oc-dur-instant: 110ms;
-  --oc-dur-micro: 160ms;
-  --oc-dur-ui: 220ms;
-  --oc-dur-enter: 420ms;
-  --oc-ease-out: cubic-bezier(0, 0, 0.2, 1); /* things arriving */
-  --oc-ease-standard: cubic-bezier(0.4, 0, 0.2, 1); /* things changing */
-  --oc-ease-emphasized: cubic-bezier(0.2, 0, 0, 1); /* hero moments */
-  --oc-stagger: 55ms;
-
   /* Layout */
   --oc-sidebar-width: 15.5rem;
   --oc-topbar-height: 3.75rem;
@@ -155,90 +143,16 @@
 
   /* Gentle lift on hover for interactive cards and rows. */
   .oc-lift {
-    transition:
-      transform var(--oc-dur-micro) var(--oc-ease-standard),
-      box-shadow var(--oc-dur-micro) var(--oc-ease-standard);
+    transition: transform 160ms ease, box-shadow 160ms ease;
   }
   .oc-lift:hover {
     transform: translateY(-1px);
     box-shadow: var(--oc-shadow-2);
   }
 
-  /* Small reward when a task is ticked (one gentle overshoot, no bounce loop). */
+  /* Small reward when a task is ticked. */
   .oc-pop {
-    animation: oc-pop var(--oc-dur-ui) cubic-bezier(0.3, 1.4, 0.6, 1);
-  }
-
-  /* Entrance: fade + rise. Set --i on the element for its place in a stagger. */
-  .oc-enter {
-    animation: oc-rise var(--oc-dur-enter) var(--oc-ease-out) both;
-    animation-delay: calc(var(--i, 0) * var(--oc-stagger));
-  }
-  /* Directional entrance for side panels. */
-  .oc-enter-side {
-    animation: oc-slide-in var(--oc-dur-enter) var(--oc-ease-out) both;
-    animation-delay: calc(var(--i, 0) * var(--oc-stagger));
-  }
-
-  /* Press feedback for real buttons. */
-  .oc-press {
-    transition: transform var(--oc-dur-instant) var(--oc-ease-standard);
-  }
-  .oc-press:active:not(:disabled) {
-    transform: scale(0.97);
-  }
-
-  /* Arrow nudge on hover/focus of a real link or button containing .oc-nudge. */
-  .oc-nudge {
-    transition: transform var(--oc-dur-micro) var(--oc-ease-standard);
-  }
-  :is(a, button):is(:hover, :focus-visible) .oc-nudge {
-    transform: translateX(0.2em);
-  }
-
-  /* Menus and popovers: open from their anchor. */
-  .oc-pop-in {
-    animation: oc-menu var(--oc-dur-micro) var(--oc-ease-out) both;
-    transform-origin: var(--oc-origin, top right);
-  }
-
-  /* Bars and tracks that fill on entrance (scaleX from their start edge). */
-  .oc-grow-x {
-    transform-origin: left center;
-    animation: oc-grow-x var(--oc-dur-enter) var(--oc-ease-emphasized) both;
-    animation-delay: calc(150ms + var(--i, 0) * var(--oc-stagger));
-  }
-
-  /* SVG strokes that draw on entrance. Set pathLength="1" on the element. */
-  .oc-draw {
-    stroke-dasharray: 1;
-    stroke-dashoffset: 1;
-    animation: oc-draw 900ms var(--oc-ease-standard) forwards;
-    animation-delay: calc(200ms + var(--i, 0) * 70ms);
-  }
-
-  /* A quick self-drawing stroke (e.g. a checkmark). pathLength="1" required. */
-  .oc-draw-quick {
-    stroke-dasharray: 1;
-    stroke-dashoffset: 1;
-    animation: oc-draw var(--oc-dur-ui) var(--oc-ease-out) 40ms forwards;
-  }
-
-  /* Arc that fills to --p (0..1) on entrance. Needs pathLength="1" and
-     stroke-dasharray "<p> 1" on the element. */
-  .oc-arc {
-    animation: oc-arc 800ms var(--oc-ease-emphasized) both;
-    animation-delay: calc(200ms + var(--i, 0) * 80ms);
-  }
-
-  /* Smooth state changes (e.g. a class becoming "now"). */
-  .oc-state {
-    transition:
-      background-color var(--oc-dur-ui) var(--oc-ease-standard),
-      color var(--oc-dur-ui) var(--oc-ease-standard),
-      border-color var(--oc-dur-ui) var(--oc-ease-standard),
-      opacity var(--oc-dur-ui) var(--oc-ease-standard),
-      transform var(--oc-dur-ui) var(--oc-ease-standard);
+    animation: oc-pop 260ms cubic-bezier(0.3, 1.6, 0.6, 1);
   }
 
   /* Search hit highlight. */
@@ -317,73 +231,11 @@
   }
 }
 
-@keyframes oc-rise {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes oc-slide-in {
-  from {
-    opacity: 0;
-    transform: translateX(16px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes oc-menu {
-  from {
-    opacity: 0;
-    transform: translateY(-4px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes oc-grow-x {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
-
-@keyframes oc-arc {
-  from {
-    stroke-dashoffset: var(--p);
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes oc-draw {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-/* Reduced motion: every animation resolves instantly to its final state and
-   nothing waits on a stagger delay. Information is never conveyed by motion. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
-    animation-delay: 0ms !important;
-    animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
   }
 }

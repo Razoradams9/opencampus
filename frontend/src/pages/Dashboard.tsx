@@ -15,8 +15,6 @@ import { filterDashboard } from "../lib/filterDashboard";
 import { currentOrNextClass } from "../lib/schedule";
 import { subjectLookup } from "../lib/subjects";
 import type { BackendHealth } from "../lib/useBackendHealth";
-import { useNow } from "../lib/useNow";
-import type React from "react";
 
 interface DashboardProps {
   user: AuthUser;
@@ -39,7 +37,7 @@ export function Dashboard({ user, institution, data, today, health, query, onCle
   const toggleAssignment = (id: string) =>
     setAssignments((list) => list.map((a) => (a.id === id ? { ...a, done: !a.done } : a)));
 
-  const now = useNow(); // updates every minute: current class, countdowns, now-line
+  const now = new Date();
   const subjects = useMemo(() => subjectLookup(data.subjects), [data.subjects]);
   const filtered = filterDashboard(data, assignments, query);
   const searching = query.trim() !== "";
@@ -68,7 +66,7 @@ export function Dashboard({ user, institution, data, today, health, query, onCle
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-x-4 gap-y-8 lg:grid-cols-12 lg:gap-x-8 lg:gap-y-10">
         {!searching && (
-          <div className="lg:order-1 lg:col-span-8 oc-enter" style={{ "--i": 0 } as React.CSSProperties}>
+          <div className="lg:order-1 lg:col-span-8">
             <WelcomeSection
               firstName={user.full_name.split(" ")[0]}
               institutionName={institution.name}
@@ -83,14 +81,14 @@ export function Dashboard({ user, institution, data, today, health, query, onCle
           </div>
         )}
         {!searching && (
-          <div className="lg:order-3 lg:col-span-12 oc-enter" style={{ "--i": 2 } as React.CSSProperties}>
+          <div className="lg:order-3 lg:col-span-12">
             <QuickActions />
           </div>
         )}
-        <div className="lg:order-4 lg:col-span-5 oc-enter" style={{ "--i": 3 } as React.CSSProperties}>
+        <div className="lg:order-4 lg:col-span-5">
           <TodaySchedule items={filtered.schedule} subjects={subjects} now={now} totalCount={data.schedule.length} query={query} />
         </div>
-        <div className="lg:order-5 lg:col-span-7 oc-enter" style={{ "--i": 4 } as React.CSSProperties}>
+        <div className="lg:order-5 lg:col-span-7">
           <AssignmentList
             searching={searching}
             assignments={filtered.assignments}
@@ -101,25 +99,25 @@ export function Dashboard({ user, institution, data, today, health, query, onCle
             onToggle={toggleAssignment}
           />
         </div>
-        <div className="lg:order-6 lg:col-span-7 oc-enter" style={{ "--i": 5 } as React.CSSProperties}>
+        <div className="lg:order-6 lg:col-span-7">
           <AcademicProgress subjects={filtered.subjects} featured={featured} totalCount={data.subjects.length} query={query} />
         </div>
-        <div className="lg:order-7 lg:col-span-5 oc-enter" style={{ "--i": 6 } as React.CSSProperties}>
+        <div className="lg:order-7 lg:col-span-5">
           <CampusUpdates updates={filtered.updates} today={today} query={query} />
         </div>
         {filtered.eventMatches && (
-          <div className="lg:order-8 lg:col-span-8 oc-enter" style={{ "--i": 7 } as React.CSSProperties}>
+          <div className="lg:order-8 lg:col-span-8">
             <CampusEventCard event={data.event} today={today} query={query} />
           </div>
         )}
         {!searching && (
-          <div className="lg:order-2 lg:col-span-4 oc-enter-side" style={{ "--i": 1 } as React.CSSProperties}>
+          <div className="lg:order-2 lg:col-span-4">
             <AiAssistantTeaser />
           </div>
         )}
         {/* Developer diagnostics: not shown to students in production builds. */}
         {import.meta.env.DEV && !searching && (
-          <div className="lg:order-9 lg:col-span-4 oc-enter" style={{ "--i": 8 } as React.CSSProperties}>
+          <div className="lg:order-9 lg:col-span-4">
             <SystemStatus health={health} />
           </div>
         )}

@@ -1,8 +1,6 @@
 import { ArrowRight } from "lucide-react";
-import type React from "react";
 import type { ScheduleItem, Subject } from "../../data/types";
 import { formatTime, greetingFor } from "../../lib/dates";
-import { formatDuration, minutesUntil } from "../../lib/schedule";
 import { SubjectMark } from "../ui/SubjectMark";
 import { ArchMotif } from "./ArchMotif";
 import { DayRail } from "./DayRail";
@@ -27,11 +25,6 @@ export function WelcomeSection(props: WelcomeSectionProps) {
   const { firstName, institutionName, today, now, schedule, subjects, upcoming, tasksDone, tasksTotal } = props;
   const date = today.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
   const subject = upcoming ? subjects.get(upcoming.item.subjectId) : undefined;
-  const countdown = upcoming
-    ? upcoming.state === "now"
-      ? `ends in ${formatDuration(minutesUntil(upcoming.item.end, now))}`
-      : `in ${formatDuration(minutesUntil(upcoming.item.start, now))}`
-    : null;
 
   return (
     <section
@@ -46,7 +39,7 @@ export function WelcomeSection(props: WelcomeSectionProps) {
         <span className="shrink-0 rounded-full bg-white/15 px-2 py-0.5">Sample data</span>
       </div>
 
-      <div className="oc-enter relative mt-6 sm:mt-8" style={{ "--i": 1 } as React.CSSProperties}>
+      <div className="relative mt-6 sm:mt-8">
         <p className="text-sm text-white/85">
           <time dateTime={today.toISOString().slice(0, 10)}>{date}</time>
         </p>
@@ -57,20 +50,13 @@ export function WelcomeSection(props: WelcomeSectionProps) {
         </h1>
       </div>
 
-      <div className="oc-enter relative mt-6 grid grid-cols-[minmax(0,1fr)] gap-4 sm:mt-auto sm:pt-8 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] xl:items-end" style={{ "--i": 3 } as React.CSSProperties}>
+      <div className="relative mt-6 grid grid-cols-[minmax(0,1fr)] gap-4 sm:mt-auto sm:pt-8 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] xl:items-end">
         {upcoming && subject ? (
           <a
             href="#schedule"
-            className="group oc-lift oc-press flex items-center gap-4 rounded-xl bg-white px-4 py-3 text-ink shadow-e2"
+            className="group oc-lift flex items-center gap-4 rounded-xl bg-white px-4 py-3 text-ink shadow-e2"
           >
-            <span className="shrink-0">
-              <span className="block font-display text-[1.625rem] leading-none font-medium tabular-nums sm:text-[2rem]">
-                {formatTime(upcoming.item.start)}
-              </span>
-              <span className="mt-1 block font-mono text-[0.6875rem] text-hero" aria-live="polite">
-                {countdown}
-              </span>
-            </span>
+            <span className="font-display text-[1.625rem] leading-none font-medium tabular-nums sm:text-[2rem]">{formatTime(upcoming.item.start)}</span>
             <span className="min-w-0 flex-1 border-l border-line pl-4">
               <span className="flex items-center gap-1.5 text-[0.6875rem] font-semibold tracking-wide text-hero uppercase">
                 {upcoming.state === "now" ? "Happening now" : "Up next"}
@@ -83,7 +69,7 @@ export function WelcomeSection(props: WelcomeSectionProps) {
                 {upcoming.item.kind} · {upcoming.item.room}
               </span>
             </span>
-            <ArrowRight className="oc-nudge size-4 shrink-0 text-ink-muted" aria-hidden="true" />
+            <ArrowRight className="size-4 shrink-0 text-ink-muted transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
           </a>
         ) : (
           <p className="rounded-xl bg-white/15 px-4 py-3 text-sm">No more classes today. Enjoy the evening.</p>

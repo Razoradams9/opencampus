@@ -43,19 +43,14 @@ export function MobileTabBar({ onMenu }: { onMenu: () => void }) {
     else el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const itemClass =
-    "relative flex flex-1 flex-col items-center justify-center gap-0.5 text-[0.6875rem] font-medium transition-colors duration-(--oc-dur-micro)";
+  const itemClass = "flex flex-1 flex-col items-center justify-center gap-0.5 text-[0.6875rem] font-medium transition-colors";
 
   return (
     <nav
       aria-label="Sections"
       className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-20 rounded-2xl border border-white/70 bg-surface/90 shadow-e3 backdrop-blur-md lg:hidden"
     >
-      <ul className="relative flex h-16">
-        {/* One indicator that slides between tabs (transform only). */}
-        <li aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 w-1/5 transition-transform duration-(--oc-dur-ui) ease-(--oc-ease-standard)" style={{ transform: `translateX(${Math.max(0, TABS.findIndex((t) => t.id === active)) * 100}%)` }}>
-          <span className="mx-auto mt-[9px] block h-7 w-12 rounded-full bg-hero/12" />
-        </li>
+      <ul className="flex h-16">
         {TABS.map(({ id, label, icon: Icon }) => {
           const isActive = active === id;
           return (
@@ -64,9 +59,9 @@ export function MobileTabBar({ onMenu }: { onMenu: () => void }) {
                 type="button"
                 onClick={() => go(id)}
                 aria-current={isActive ? "location" : undefined}
-                className={`oc-press ${itemClass} ${isActive ? "text-hero" : "text-ink-subtle hover:text-ink"}`}
+                className={`${itemClass} ${isActive ? "text-hero" : "text-ink-subtle hover:text-ink"}`}
               >
-                <span className="relative grid h-7 w-12 place-items-center">
+                <span className={`grid h-7 w-12 place-items-center rounded-full transition-colors ${isActive ? "bg-hero/12" : ""}`}>
                   <Icon className="size-5" aria-hidden="true" />
                 </span>
                 {label}
@@ -75,7 +70,7 @@ export function MobileTabBar({ onMenu }: { onMenu: () => void }) {
           );
         })}
         <li className="flex flex-1">
-          <button type="button" onClick={onMenu} aria-controls="oc-sidebar" className={`oc-press ${itemClass} text-ink-subtle hover:text-ink`}>
+          <button type="button" onClick={onMenu} aria-controls="oc-sidebar" className={`${itemClass} text-ink-subtle hover:text-ink`}>
             <span className="grid h-7 w-12 place-items-center">
               <Menu className="size-5" aria-hidden="true" />
             </span>

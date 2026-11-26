@@ -44,7 +44,7 @@ export function SubmitButton({ busy, children }: { busy: boolean; children: Reac
     <button
       type="submit"
       disabled={busy}
-      className="oc-press inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-ink shadow-e2 px-4 text-sm font-semibold text-canvas transition-colors hover:bg-ink/90 disabled:cursor-wait disabled:opacity-70"
+      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-ink shadow-e2 px-4 text-sm font-semibold text-canvas transition-colors hover:bg-ink/90 disabled:cursor-wait disabled:opacity-70"
     >
       {busy && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}
       {children}

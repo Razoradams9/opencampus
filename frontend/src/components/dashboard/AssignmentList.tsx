@@ -1,4 +1,4 @@
-import { ChevronDown } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import type { Assignment, Subject } from "../../data/types";
 import { daysBetween } from "../../lib/dates";
@@ -101,32 +101,12 @@ export function AssignmentList({ assignments, allAssignments, subjects, today, q
                     } ${a.done && justChecked === a.id ? "oc-pop" : ""}`}
                     aria-hidden="true"
                   >
-                    {a.done && (
-                      <svg viewBox="0 0 16 16" className="size-3.5" fill="none" aria-hidden="true">
-                        {/* Draws itself when ticked; static when already done. */}
-                        <path
-                          d="M3 8.5 6.5 12 13 4.5"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          pathLength={1}
-                          className={justChecked === a.id ? "oc-draw-quick" : undefined}
-                        />
-                      </svg>
-                    )}
+                    {a.done && <Check className="size-3.5" strokeWidth={3} />}
                   </span>
 
                   <span className="min-w-0">
-                    <span className={`oc-state relative inline-block max-w-full truncate align-top text-[0.9375rem] font-medium ${a.done ? "text-ink-subtle" : "text-ink"}`}>
+                    <span className={`block truncate text-[0.9375rem] font-medium transition-colors ${a.done ? "text-ink-subtle line-through" : "text-ink"}`}>
                       <Highlight text={a.title} query={query} />
-                      {/* Strike line sweeps across on completion (transform only). */}
-                      <span
-                        aria-hidden="true"
-                        className={`absolute inset-x-0 top-1/2 h-px origin-left bg-ink-subtle transition-transform duration-(--oc-dur-ui) ease-(--oc-ease-standard) ${
-                          a.done ? "scale-x-100" : "scale-x-0"
-                        }`}
-                      />
                     </span>
                     <span className="mt-0.5 flex items-center gap-2 text-xs text-ink-subtle">
                       <span className="inline-flex items-center gap-1.5 font-mono">
@@ -156,10 +136,10 @@ export function AssignmentList({ assignments, allAssignments, subjects, today, q
           type="button"
           onClick={() => setExpanded((v) => !v)}
           aria-expanded={expanded}
-          className="oc-press mt-auto flex min-h-11 items-center justify-center gap-1.5 border-t border-line/70 text-sm font-medium text-accent transition-colors hover:bg-accent-soft/50"
+          className="mt-auto flex min-h-11 items-center justify-center gap-1.5 border-t border-line/70 text-sm font-medium text-accent transition-colors hover:bg-accent-soft/50"
         >
           {expanded ? "Show less" : `Show all ${sorted.length}`}
-          <ChevronDown className={`size-4 transition-transform duration-(--oc-dur-ui) ${expanded ? "rotate-180" : ""}`} aria-hidden="true" />
+          <ChevronDown className={`size-4 transition-transform ${expanded ? "rotate-180" : ""}`} aria-hidden="true" />
           {!expanded && <span className="sr-only">({hidden} more)</span>}
         </button>
       )}

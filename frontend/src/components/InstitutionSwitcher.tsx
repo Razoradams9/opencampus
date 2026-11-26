@@ -79,7 +79,7 @@ export function InstitutionSwitcher({ me, onSwitch }: InstitutionSwitcherProps) 
         <ChevronsUpDown className="size-3.5 shrink-0 text-ink-subtle" aria-hidden="true" />
       </button>
       {open && (
-        <div id={menuId} className="oc-pop-in absolute inset-x-0 z-10 mt-1.5 overflow-hidden rounded-card bg-surface shadow-e3 [--oc-origin:top_center]">
+        <div id={menuId} className="absolute inset-x-0 z-10 mt-1.5 overflow-hidden rounded-card bg-surface shadow-e3">
           <p className="oc-eyebrow border-b border-line px-3 py-2">Switch institution</p>
           <ul>
             {options.map((m) => (

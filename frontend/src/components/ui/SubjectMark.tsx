@@ -16,18 +16,15 @@ interface SubjectMarkProps {
   tone: SubjectTone;
   className?: string;
   hollow?: boolean;
-  /** White shape for dark surfaces (the shape still identifies the subject). */
-  inverse?: boolean;
 }
 
-export function SubjectMark({ tone, className = "size-3", hollow = false, inverse = false }: SubjectMarkProps) {
-  const colour = inverse ? "#ffffff" : `var(--oc-subject-${tone})`;
+export function SubjectMark({ tone, className = "size-3", hollow = false }: SubjectMarkProps) {
   return (
     <svg viewBox="0 0 16 16" className={`shrink-0 ${className}`} aria-hidden="true">
       <path
         d={SHAPES[tone]}
-        fill={hollow ? "none" : colour}
-        stroke={colour}
+        fill={hollow ? "none" : `var(--oc-subject-${tone})`}
+        stroke={`var(--oc-subject-${tone})`}
         strokeWidth={hollow ? 2 : 0}
         strokeLinejoin="round"
       />

@@ -1,4 +1,3 @@
-import type React from "react";
 import type { Assignment, Subject } from "../../data/types";
 import { addDays, daysBetween } from "../../lib/dates";
 import { SubjectMark } from "../ui/SubjectMark";
@@ -8,9 +7,6 @@ interface WeekLoadProps {
   subjects: Map<string, Subject>;
   today: Date;
 }
-
-/** Day shading by open tasks: the heavier the day, the stronger the tint. */
-const HEAT = ["bg-canvas/60", "bg-subject-rose/10", "bg-subject-rose/20", "bg-subject-rose/30"];
 
 /**
  * The next seven days, with each task as its subject's shape on the day it
@@ -28,10 +24,7 @@ export function WeekLoad({ assignments, subjects, today }: WeekLoadProps) {
         return (
           <li
             key={i}
-            style={{ "--i": i } as React.CSSProperties}
-            className={`oc-enter oc-state flex min-h-[5.25rem] flex-col items-center rounded-lg px-0.5 pt-1.5 pb-2 ${HEAT[Math.min(open, 3)]} ${
-              i === 0 ? "ring-2 ring-subject-rose/50 ring-inset" : ""
-            }`}
+            className={`flex min-h-[5.25rem] flex-col items-center rounded-lg px-0.5 pt-1.5 pb-2 ${i === 0 ? "bg-subject-rose/12" : "bg-canvas/60"}`}
           >
             <span className={`text-[0.6875rem] font-medium ${i === 0 ? "text-subject-rose" : "text-ink-subtle"}`}>{i === 0 ? "Today" : label}</span>
             <span className="font-display text-lg leading-tight font-medium tabular-nums">{day.getDate()}</span>
