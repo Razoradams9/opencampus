@@ -1,8 +1,10 @@
 # OpenCampus design system
 
-**Bold Contemporary** (evolved from "Bright Contemporary"): confident colour
-blocking, editorial type, and graphics that carry information. Bold is not
-busy: every graphic answers a question a student actually has.
+**Bold Academic Editorial + Interactive Motion** (evolved from Bold
+Contemporary): confident colour blocking, editorial type, graphics that carry
+information, and fast, purposeful motion. Bold is not busy: every graphic
+answers a question a student actually has, and every animation explains a
+change or an arrival.
 
 All tokens live in `frontend/src/styles/index.css`:
 
@@ -121,10 +123,10 @@ Sections are **not** all the same card. Each has its own treatment:
 | Section | Surface | Graphic (what it tells you) |
 | ------- | ------- | --------------------------- |
 | Welcome | cobalt slab, concentric-arch motif | next-class ticket; **day rail**: today's classes as segments with an orange "now" marker (load and gaps) |
-| Study assistant | navy block, arch motif | none (planned feature) |
-| Today | white card | **proportional day view**: block height = class length; hour grid; orange now-line; one filled class |
+| Study assistant | **periwinkle block**, static node-graph mark, "Not connected yet" status | none (planned feature) |
+| Today | **navy block** | **proportional day view**: block height = class length; hour grid; orange now-line; one filled class; tinted navy blocks per subject |
 | Due soon | white card | **7-day workload strip**: each task as its subject's shape on its due day, hollow when done |
-| Progress | **lavender colour block** | **lesson tracks**: one segment per lesson, big percentage numeral |
+| Progress | **lavender colour block** | **arch chart**: concentric semicircles (the brand arch), one arc per course filled to its progress, average numeral in the centre; lesson tracks as the legend |
 | Campus | no card: editorial list on the canvas | serif headlines, date column, category in colour |
 | Event | **apricot poster** (warm counterweight) | oversized date numeral, hall illustration |
 
@@ -150,3 +152,61 @@ body 15px Geist; metadata 11–12px Geist Mono. Never below 11px.
 ### Motifs
 `ArchMotif` (concentric arches from the logo) is the single decorative
 element, drawn at 13–14% opacity on dark surfaces only.
+
+## Motion system
+
+Fast, precise, intentional. CSS only (no animation library: every sequence
+here is a single entrance or state change, which CSS keyframes and
+transitions handle with zero bundle cost).
+
+### Tokens (`index.css`)
+
+| Token | Value | Use |
+| ----- | ----- | --- |
+| `--oc-dur-instant` | 110ms | press feedback |
+| `--oc-dur-micro` | 160ms | hovers, toggles, menus opening |
+| `--oc-dur-ui` | 220ms | state changes, drawer, tab indicator, strike line |
+| `--oc-dur-enter` | 420ms | first-paint entrances, bar fills |
+| `--oc-ease-out` | cubic-bezier(0,0,.2,1) | things arriving |
+| `--oc-ease-standard` | cubic-bezier(.4,0,.2,1) | things changing |
+| `--oc-ease-emphasized` | cubic-bezier(.2,0,0,1) | chart fills, hero moments |
+| `--oc-stagger` | 55ms | step between staggered items (`--i`) |
+
+### Utilities
+
+`.oc-enter` (fade + 12px rise), `.oc-enter-side` (fade + 16px from the right,
+for side panels), `.oc-press` (scale .97 on press, real buttons only),
+`.oc-nudge` (arrow moves 0.2em when its link/button is hovered or focused),
+`.oc-pop-in` (menus open from their anchor), `.oc-grow-x` (bars fill from
+their start edge), `.oc-arc` (SVG arc fills to `--p`), `.oc-draw` /
+`.oc-draw-quick` (SVG strokes draw themselves; `pathLength="1"`),
+`.oc-state` (colour/opacity transitions for live state changes),
+`.oc-lift` (1px hover lift).
+
+### Where motion is used
+
+- Dashboard sections enter in phone order, 55ms apart; the assistant panel
+  enters from the side on desktop.
+- Hero: greeting, then next-class ticket; day-rail segments grow in order.
+- Timetable blocks cascade in; class states (past/now/next) cross-fade as the
+  clock moves (`useNow` re-renders every minute).
+- Arch chart arcs and lesson tracks fill once.
+- Task tick: checkmark draws (220ms), strike line sweeps across the title,
+  box pops once (no bounce loop).
+- Event illustration draws itself once.
+- Mobile tab bar: one indicator slides between tabs.
+- Notifications and institution menus open from their anchor.
+
+### Rules
+
+- Animate `transform`, `opacity` and SVG stroke offsets only; never layout
+  properties. (Measured: 0 frames over 34ms during the entrance with 4x CPU
+  throttling on a phone viewport; no layout shift.)
+- Nothing loops or runs in the background. No parallax. No bounce beyond a
+  single small overshoot.
+- Motion never carries information on its own: every final state is
+  readable without it.
+- `prefers-reduced-motion: reduce`: all animations and transitions resolve
+  instantly, stagger delays are removed, smooth scrolling is off.
+- Hover effects only on things that are interactive; disabled controls do not
+  react.

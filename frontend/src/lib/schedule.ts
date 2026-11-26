@@ -27,3 +27,16 @@ export function currentOrNextClass(items: ScheduleItem[], now: Date): { item: Sc
   const next = items.find((i) => states.get(i.id) === "next");
   return next ? { item: next, state: "next" } : undefined;
 }
+
+/** "in 25 min", "in 1 h 5 min": time until `target` ("HH:MM") from `now`. */
+export function minutesUntil(target: string, now: Date): number {
+  return toMinutes(target) - (now.getHours() * 60 + now.getMinutes());
+}
+
+export function formatDuration(minutes: number): string {
+  if (minutes < 1) return "under a minute";
+  if (minutes < 60) return `${minutes} min`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m ? `${h} h ${m} min` : `${h} h`;
+}

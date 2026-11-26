@@ -1,3 +1,4 @@
+import type React from "react";
 import type { ScheduleItem, Subject } from "../../data/types";
 import { formatTime, toMinutes } from "../../lib/dates";
 import { slotStates } from "../../lib/schedule";
@@ -29,22 +30,22 @@ export function DayRail({ items, subjects, now }: DayRailProps) {
       </figcaption>
       <div className="relative h-7" aria-hidden="true">
         <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-white/30" />
-        {items.map((item) => {
+        {items.map((item, index) => {
           const state = states.get(item.id);
           const left = toMinutes(item.start);
           const width = toMinutes(item.end) - left;
           return (
             <div
               key={item.id}
-              className={`absolute top-1 bottom-1 rounded-[3px] ${
+              className={`oc-grow-x oc-state absolute top-1 bottom-1 rounded-[3px] ${
                 state === "past" ? "bg-white/25" : state === "now" ? "bg-white" : "bg-white/60"
               }`}
-              style={{ left: pct(left), width: `calc(${(width / span) * 100}% - 3px)` }}
+              style={{ left: pct(left), width: `calc(${(width / span) * 100}% - 3px)`, "--i": index + 4 } as React.CSSProperties}
             />
           );
         })}
         {nowMinutes > start && nowMinutes < end && (
-          <div className="absolute -top-1 -bottom-1 w-0.5 rounded-full bg-signal" style={{ left: pct(nowMinutes) }}>
+          <div className="oc-enter absolute -top-1 -bottom-1 w-0.5 rounded-full bg-signal" style={{ left: pct(nowMinutes), "--i": 9 } as React.CSSProperties}>
             <span className="absolute -top-1 -left-[3px] size-2 rounded-full bg-signal" />
           </div>
         )}

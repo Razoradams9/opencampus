@@ -48,7 +48,7 @@ export function NotificationsMenu({ items, today }: NotificationsMenuProps) {
         aria-controls={panelId}
         aria-label={`Notifications, ${items.length} important`}
         title="Notifications"
-        className={`relative grid size-9 place-items-center rounded-oc text-ink-muted transition-colors hover:bg-sunken hover:text-ink ${
+        className={`oc-press relative grid size-9 place-items-center rounded-oc text-ink-muted transition-colors hover:bg-sunken hover:text-ink ${
           open ? "bg-sunken text-ink" : ""
         }`}
       >
@@ -62,7 +62,7 @@ export function NotificationsMenu({ items, today }: NotificationsMenuProps) {
           id={panelId}
           role="region"
           aria-label="Notifications"
-          className="absolute right-0 z-30 mt-2 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-card bg-surface shadow-e3"
+          className="oc-pop-in absolute right-0 z-30 mt-2 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-card bg-surface shadow-e3"
         >
           <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
             <p className="oc-eyebrow">Important updates</p>

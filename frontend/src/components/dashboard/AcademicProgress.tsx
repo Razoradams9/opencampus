@@ -5,6 +5,8 @@ import { Highlight } from "../ui/Highlight";
 import { NoMatches } from "../ui/NoMatches";
 import { SectionHeading } from "../ui/SectionHeading";
 import { SubjectMark } from "../ui/SubjectMark";
+import { ArchChart } from "./ArchChart";
+import type React from "react";
 
 interface AcademicProgressProps {
   subjects: Subject[];
@@ -15,7 +17,7 @@ interface AcademicProgressProps {
 }
 
 /** One segment per lesson: completed lessons filled in the subject colour. */
-function LessonTrack({ subject }: { subject: Subject }) {
+function LessonTrack({ subject, index }: { subject: Subject; index: number }) {
   return (
     <div
       role="progressbar"
@@ -23,10 +25,11 @@ function LessonTrack({ subject }: { subject: Subject }) {
       aria-valuemin={0}
       aria-valuemax={subject.lessonsTotal}
       aria-label={`${subject.name}: ${subject.lessonsCompleted} of ${subject.lessonsTotal} lessons`}
-      className="flex gap-[3px]"
+      className="oc-grow-x flex gap-[3px]"
+      style={{ "--i": index } as React.CSSProperties}
     >
       {Array.from({ length: subject.lessonsTotal }, (_, i) => (
-        <span key={i} className={`h-2.5 flex-1 rounded-[2px] ${i < subject.lessonsCompleted ? "bg-(--tone)" : "bg-white/70"}`} />
+        <span key={i} className={`h-1.5 flex-1 rounded-[2px] ${i < subject.lessonsCompleted ? "bg-(--tone)" : "bg-white/70"}`} />
       ))}
     </div>
   );
@@ -44,8 +47,10 @@ export function AcademicProgress({ subjects, featured, totalCount, query }: Acad
         {subjects.length === 0 ? (
           <NoMatches what="courses" />
         ) : (
-          <ul className="space-y-4">
-            {subjects.map((subject) => (
+          <div className="grid items-center gap-5 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:grid-cols-1 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <ArchChart subjects={subjects} />
+          <ul className="space-y-3.5">
+            {subjects.map((subject, index) => (
               <li key={subject.id} style={toneStyle(subject.tone)}>
                 <div className="mb-1.5 flex items-end justify-between gap-3">
                   <p className="flex min-w-0 items-center gap-2">
@@ -55,15 +60,16 @@ export function AcademicProgress({ subjects, featured, totalCount, query }: Acad
                       <Highlight text={subject.name} query={query} />
                     </span>
                   </p>
-                  <p className="shrink-0 font-display text-2xl leading-none font-medium tabular-nums">
+                  <p className="shrink-0 font-display text-xl leading-none font-medium tabular-nums">
                     {subject.progress}
                     <span className="text-sm text-ink-muted">%</span>
                   </p>
                 </div>
-                <LessonTrack subject={subject} />
+                <LessonTrack subject={subject} index={index} />
               </li>
             ))}
           </ul>
+          </div>
         )}
 
         {showFeatured && featured && (
