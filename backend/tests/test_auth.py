@@ -324,3 +324,62 @@ def test_user_can_revoke_own_other_session_but_not_others(make_client):
 
     assert phone.get("/api/auth/me", headers=bearer(phone_token)).status_code == 401
     assert laptop.get("/api/auth/me", headers=bearer(laptop_token)).status_code == 200
+
+
+# ---- Open registration (no institution code) -------------------------------
+
+def test_registration_without_institution_joins_open_institution(client):
+    body = {k: v for k, v in REGISTER.items() if k != "institution_slug"}
+
+    response = client.post("/api/auth/register", json=body)
+
+    assert response.status_code == 201, response.text
+    active = response.json()["me"]["active_institution"]
+    assert active["slug"] == "opencampus" and active["name"] == "OpenCampus Community"
+    assert active["role"] == "student"  # never more than student
+    # A second sign-up reuses the same institution.
+    second = client.post("/api/auth/register", json={**body, "email": "second@example.org"})
+    assert second.json()["me"]["active_institution"]["id"] == active["id"]
+
+
+def test_blank_institution_code_counts_as_none(client):
+    response = client.post("/api/auth/register", json={**REGISTER, "institution_slug": "   "})
+    assert response.status_code == 201
+    assert response.json()["me"]["active_institution"]["slug"] == "opencampus"
+
+
+def test_open_registration_can_be_disabled(app, client):
+    import dataclasses
+
+    closed = dataclasses.replace(get_settings(), open_registration_slug="")
+    app.dependency_overrides[get_settings] = lambda: closed
+    body = {k: v for k, v in REGISTER.items() if k != "institution_slug"}
+
+    response = client.post("/api/auth/register", json=body)
+
+    assert response.status_code == 400
+    assert response.json()["code"] == "institution_required"
+
+
+def test_suspended_open_institution_blocks_sign_up(client):
+    body = {k: v for k, v in REGISTER.items() if k != "institution_slug"}
+    assert client.post("/api/auth/register", json=body).status_code == 201
+    with session_factory()() as db:
+        from app.models import Institution, InstitutionStatus
+
+        db.execute(update(Institution).where(Institution.slug == "opencampus").values(status=InstitutionStatus.suspended))
+        db.commit()
+    blocked = client.post("/api/auth/register", json={**body, "email": "late@example.org"})
+    assert blocked.status_code == 400 and blocked.json()["code"] == "registration_closed"
+
+
+def test_open_registration_is_off_by_default_in_production(monkeypatch):
+    from app.core.config import build_settings
+
+    monkeypatch.setenv("OPENCAMPUS_ENV", "production")
+    monkeypatch.setenv("OPENCAMPUS_FRONTEND_URL", "https://campus.example")
+    monkeypatch.setenv("OPENCAMPUS_EMAIL_MODE", "smtp")
+    monkeypatch.setenv("OPENCAMPUS_SMTP_HOST", "mail.example")
+    monkeypatch.setenv("OPENCAMPUS_EMAIL_FROM", "no-reply@campus.example")
+    monkeypatch.delenv("OPENCAMPUS_OPEN_REGISTRATION", raising=False)
+    assert build_settings().open_registration_slug == ""

@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -96,8 +97,28 @@ def _issue_refresh_token(db: Session, settings: Settings, session: AuthSession, 
     return raw
 
 
+def _open_institution(db: Session, settings: Settings) -> Institution | None:
+    """The shared institution for sign-ups without a code. Created on first use
+    (from configuration only, never from request input)."""
+    slug = settings.open_registration_slug
+    if not slug:
+        return None
+    db.execute(
+        pg_insert(Institution)
+        .values(slug=slug, name=settings.open_registration_name, allow_self_registration=True)
+        .on_conflict_do_nothing(index_elements=["slug"])
+    )
+    return db.scalar(select(Institution).where(Institution.slug == slug))
+
+
 def register(db: Session, settings: Settings, data: RegisterRequest, user_agent: str | None) -> IssuedTokens:
-    institution = db.scalar(select(Institution).where(Institution.slug == data.institution_slug.strip().lower()))
+    if data.institution_slug:
+        institution = db.scalar(select(Institution).where(Institution.slug == data.institution_slug))
+    else:
+        institution = _open_institution(db, settings)
+        if institution is None:
+            raise ApiError(400, "institution_required", "Enter the institution code your college gave you")
+    # An administrator can still close or suspend the open institution.
     if (
         institution is None
         or institution.status != InstitutionStatus.active

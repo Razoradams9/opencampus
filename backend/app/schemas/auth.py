@@ -21,7 +21,14 @@ class RegisterRequest(StrictModel):
     email: EmailStr
     password: str = Field(min_length=PASSWORD_MIN, max_length=PASSWORD_MAX)
     full_name: str = Field(min_length=1, max_length=200)
-    institution_slug: str = Field(min_length=1, max_length=63)
+    # Optional: without it, the account joins the open-registration institution
+    # (when one is configured).
+    institution_slug: str | None = Field(default=None, max_length=63)
+
+    @field_validator("institution_slug")
+    @classmethod
+    def blank_slug_is_none(cls, value: str | None) -> str | None:
+        return value.strip().lower() or None if value else None
 
     @field_validator("full_name")
     @classmethod

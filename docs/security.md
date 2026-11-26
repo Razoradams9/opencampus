@@ -139,6 +139,17 @@ tenant-owned tables. Every future institution-owned table must have
 `institution_id NOT NULL`, be added to RLS in its migration, and be covered
 by an isolation test.
 
+## Open registration
+
+The sign-up page no longer asks for an institution. Accounts registered
+without a code join the institution named by `OPENCAMPUS_OPEN_REGISTRATION`
+(default `opencampus`, "OpenCampus Community", in development; **off** by
+default in production) as **students**. It is created on first use from
+configuration only, never from request input. A platform admin can close it
+like any other institution (suspend it or turn off self-registration).
+Multi-tenancy is unchanged: the API still accepts an `institution_slug` to
+join a specific institution, and all tenant isolation and RLS rules apply.
+
 ## Rate limiting (M3.1)
 
 ### Architecture

@@ -51,7 +51,8 @@ export interface RegisterInput {
   email: string;
   password: string;
   full_name: string;
-  institution_slug: string;
+  /** Optional: without it the account joins the open-registration institution. */
+  institution_slug?: string;
 }
 
 export const ROLE_LABEL: Record<Role, string> = {

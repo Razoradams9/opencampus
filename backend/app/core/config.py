@@ -7,6 +7,7 @@ to start without them rather than falling back to something insecure.
 
 import ipaddress
 import os
+import re
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
@@ -135,6 +136,11 @@ class Settings:
     rl_reset_request_account: tuple[RateLimitPolicy, ...]
     rl_reset_confirm_ip: tuple[RateLimitPolicy, ...]
 
+    # Open registration: sign-ups without an institution join this one.
+    # Empty = institution code required (production default).
+    open_registration_slug: str
+    open_registration_name: str
+
     # Password recovery and email
     frontend_url: str
     password_reset_ttl: int
@@ -202,10 +208,21 @@ def build_settings() -> Settings:
         rl_reset_request_ip=_policies("reset_request_ip"),
         rl_reset_request_account=_policies("reset_request_account"),
         rl_reset_confirm_ip=_policies("reset_confirm_ip"),
+        open_registration_slug=_open_registration_slug(environment),
+        open_registration_name=os.getenv("OPENCAMPUS_OPEN_REGISTRATION_NAME", "OpenCampus Community").strip()
+        or "OpenCampus Community",
         frontend_url=_frontend_url(environment),
         password_reset_ttl=_int("OPENCAMPUS_PASSWORD_RESET_TTL_SECONDS", 30 * 60),
         **_email(environment),
     )
+
+
+def _open_registration_slug(environment: str) -> str:
+    # On by default for local development; must be switched on explicitly in production.
+    slug = os.getenv("OPENCAMPUS_OPEN_REGISTRATION", "" if environment == "production" else "opencampus").strip().lower()
+    if slug and not re.fullmatch(r"[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?", slug):
+        raise ConfigError("OPENCAMPUS_OPEN_REGISTRATION must be a valid institution slug (lowercase letters, digits, hyphens)")
+    return slug
 
 
 def _frontend_url(environment: str) -> str:
