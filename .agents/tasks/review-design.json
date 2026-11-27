@@ -1,0 +1,118 @@
+{
+  "verdict": "CHANGES_REQUESTED",
+  "findings": [
+    {
+      "id": "H-1",
+      "severity": "HIGH",
+      "title": "logout is HTTP 204, not 200; archive convention claim uses a false analogy",
+      "location": "Cross-Cutting Conventions → Archive operations",
+      "description": "The design states 'POST /api/auth/logout → 200' as a convention example. Verified in app/api/auth.py: logout is HTTP 204 NO_CONTENT. The rationale for 200 on archive endpoints cites a factually incorrect precedent. The archive-returns-200 rule itself may be correct, but it cannot be justified by this false claim.",
+      "fix": "Remove the logout comparison. State the rule directly: 'Archive and cancel endpoints return HTTP 200 with the updated resource body. No redirect, no 204.'"
+    },
+    {
+      "id": "H-2",
+      "severity": "HIGH",
+      "title": "memberships_select RLS policy is OR-based; M9 timetable join safety claim is misleading",
+      "location": "M4.3 → get_my_timetable; Review Findings Response → N9",
+      "description": "The design states 'RLS on memberships selects by institution_id = app_current_tenant()'. Verified in 0001_identity_and_tenancy.py: the policy is 'institution_id = app_current_tenant() OR user_id = app_current_user()'. The cross-institution safety of the timetable join comes from the ORM institution_id equality condition, not from RLS alone. If a future implementor removes that ORM condition trusting 'RLS handles it', the query would leak cross-institution faculty names through the OR branch.",
+      "fix": "Add a note to the M9 timetable query documentation: 'The institution_id equality in the Membership join is the cross-institution guard. The memberships_select policy uses an OR condition; RLS alone is not sufficient here.'"
+    },
+    {
+      "id": "H-3",
+      "severity": "HIGH",
+      "title": "institution_id enforcement rule is inconsistent with EnrolmentCreate accepting UUID references from body",
+      "location": "M4.2 → Schemas → EnrolmentCreate; Cross-Cutting Conventions → institution_id enforcement",
+      "description": "The cross-cutting rule says 'institution_id is never accepted from request bodies'. EnrolmentCreate accepts student_membership_id and course_id from the caller. The service validates these against institution_id from the token — which is correct — but the rule as written contradicts the schema. Additionally, the error table does not document the 404 response when a UUID reference exists in the DB but belongs to a different institution.",
+      "fix": "Rephrase the rule to allow UUID references from the body when they are always re-validated server-side against institution_id, returning 404 on mismatch. Add this to the error table: create_enrolment + cross-institution UUID reference → 404 membership_not_found / course_not_found."
+    },
+    {
+      "id": "H-4",
+      "severity": "HIGH",
+      "title": "FacultyAssignment SQLAlchemy ORM model snippet is entirely missing",
+      "location": "M4.3 → Data model → faculty_assignments",
+      "description": "The design shows a full ClassSession model snippet but no FacultyAssignment model. Without it: (a) it is unknown whether TimestampMixin is applied (it must not be), (b) the three composite ForeignKeyConstraints are not shown in __table_args__, (c) created_at mapping without mixin is undocumented. The partial unique index exists only in the SQL DDL description, not in an ORM snippet.",
+      "fix": "Add a full FacultyAssignment SQLAlchemy ORM model snippet with __table_args__, explicit created_at mapped_column, and a comment 'TimestampMixin is NOT used — assignments are immutable, no updated_at'."
+    },
+    {
+      "id": "M-1",
+      "severity": "MEDIUM",
+      "title": "DELETE withheld from M4.3 tables not explicitly documented; unbounded cancelled-assignment accumulation unaddressed",
+      "location": "M4.3 → Alembic migration 0006 → Grants",
+      "description": "The cross-cutting convention says no DELETE on academic tables but the M4.3 grants section does not explicitly confirm this for rooms, faculty_assignments, and class_sessions. The design also does not document that cancelled faculty_assignments rows accumulate indefinitely.",
+      "fix": "Add a note: 'No DELETE is granted on rooms, faculty_assignments, or class_sessions. Cancelled and archived rows are retained as historical record indefinitely.'"
+    },
+    {
+      "id": "M-2",
+      "severity": "MEDIUM",
+      "title": "SessionUpdate allows mixing status=cancelled with time/room fields; precedence is unspecified",
+      "location": "M4.3 → update_session service; M4.3 → SessionUpdate schema",
+      "description": "The service description says 'If status=cancelled: set status, skip overlap checks'. The schema allows status alongside start_at/end_at/room_id. If a caller sends both, the precedence (cancellation wins, time fields ignored vs. validation error) is unspecified.",
+      "fix": "Document: 'If status=cancelled is included in the patch, all other fields are ignored and no overlap checks run.' Or add a model_validator rejecting the combination."
+    },
+    {
+      "id": "M-3",
+      "severity": "MEDIUM",
+      "title": "No suspended_at column or explicit note that suspension has no timestamp",
+      "location": "M4.2 → enrolments table; M4.2 → update_enrolment service",
+      "description": "withdrawn_at and completed_at are populated by the service on status transitions. The design is silent on whether suspension is timestamp-tracked. This omission leaves the coder to decide unilaterally.",
+      "fix": "Either add suspended_at TIMESTAMPTZ nullable to the enrolments table and EnrolmentOut, or add an explicit note: 'Suspension does not have a dedicated timestamp; use updated_at to infer when the status last changed.'"
+    },
+    {
+      "id": "M-4",
+      "severity": "MEDIUM",
+      "title": "GET /api/academic/enrolments has no row cap; inconsistent with M7 timetable limit",
+      "location": "M4.2 → API surface → GET /api/academic/enrolments",
+      "description": "M4.3's GET /api/academic/timetable has a 500-row cap and X-Result-Truncated header. The institution-wide enrolments list has no equivalent limit. For large institutions this will return unbounded results.",
+      "fix": "Apply the same 500-row cap with X-Result-Truncated header, or explicitly document why enrolments can be unbounded (e.g. expected row counts are small for initial deployment)."
+    },
+    {
+      "id": "M-5",
+      "severity": "MEDIUM",
+      "title": "RoomStatus enum is used in RoomOut and Room model but never defined in the enums.py additions list; Room ORM model missing",
+      "location": "M4.3 → Schemas → RoomOut; M4.3 → Enum additions",
+      "description": "The M4.3 enum additions list mentions SessionStatus and FacultyAssignmentStatus but not RoomStatus. RoomStatus is referenced in RoomOut. The Room SQLAlchemy ORM model snippet is also absent.",
+      "fix": "Add RoomStatus (active/archived) to the M4.3 enums.py additions. Add a Room ORM model snippet confirming TimestampMixin use and the UNIQUE(institution_id, name, building) constraint in __table_args__."
+    },
+    {
+      "id": "M-6",
+      "severity": "MEDIUM",
+      "title": "SessionTypeEnum imported in ClassSession model but never defined anywhere in the design",
+      "location": "M4.3 → ClassSession ORM model snippet",
+      "description": "The model imports SessionTypeEnum from app.models.enums. That enum is never defined — session_type is a VARCHAR(20) enforced at application layer via a Pydantic Literal alias. This is an undefined symbol that will cause an ImportError at runtime.",
+      "fix": "Either (a) define SessionTypeEnum in app/models/enums.py, or (b) remove the import and use String(20) without an enum for session_type, consistent with how degree_level is handled."
+    },
+    {
+      "id": "M-7",
+      "severity": "MEDIUM",
+      "title": "Sidebar icon names unverified; existing CalendarRange Coming-Soon stub disposal not specified",
+      "location": "M4.3 → Frontend integration → Sidebar links",
+      "description": "The design specifies CalendarDays, BookMarked, DoorOpen. The existing sidebar uses CalendarRange (not CalendarDays). The design does not specify whether the existing UPCOMING Coming-Soon stubs (Academics/Assignments/Planner) are removed or kept alongside the new real links.",
+      "fix": "State explicitly that the UPCOMING stub list is removed entirely. Add a note to verify CalendarDays, BookMarked, and DoorOpen exist in the installed lucide-react version."
+    },
+    {
+      "id": "N-1",
+      "severity": "NIT",
+      "title": "Intermediate TABLES strings are transient; design should note only the M4.3 string is the final steady-state",
+      "location": "M4.1/M4.2/M4.3 → conftest.py TABLES sections",
+      "description": "Three intermediate TABLES strings are given. Only the M4.3 string is the final committed value.",
+      "fix": "Add a note: 'Each string is the value used for that module's tests only. The M4.3 string is the final steady-state value.'"
+    },
+    {
+      "id": "N-2",
+      "severity": "NIT",
+      "title": "StrictModel re-export 'backward compat' comment is misleading; no existing importers",
+      "location": "Cross-Cutting Conventions → StrictModel refactor (H1)",
+      "description": "No file in the repo imports StrictModel from app.schemas.auth. The 'backward compat' justification is false for this codebase.",
+      "fix": "Remove the backward-compat comment, or omit the re-export entirely."
+    },
+    {
+      "id": "N-3",
+      "severity": "NIT",
+      "title": "SessionCreate omits a note that course_id/subject_id in SessionOut are derived from the assignment, not from request input",
+      "location": "M4.3 → create_session step 2; SessionCreate schema documentation",
+      "description": "SessionOut includes course_id and subject_id but SessionCreate does not. The source of these fields in the response is never stated in the schema docs.",
+      "fix": "Add to SessionCreate docs: 'course_id and subject_id are not accepted in the request body; they are taken from the faculty_assignment row during creation.'"
+    }
+  ],
+  "reviewDoc": "c:\\Users\\razor\\OneDrive\\Documents\\GitHub\\opencampus\\.agents\\tasks\\design-review.md"
+}
