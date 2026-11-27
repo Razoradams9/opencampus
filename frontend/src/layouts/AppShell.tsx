@@ -9,6 +9,7 @@ import type { BackendHealth } from "../lib/useBackendHealth";
 
 interface AppShellProps {
   me: Me;
+  pathname: string;
   health: BackendHealth;
   data: DashboardData;
   today: Date;
@@ -21,7 +22,7 @@ interface AppShellProps {
  * Persistent frame: fixed sidebar on desktop (≥1024px), slide-in drawer
  * below that, sticky top bar, scrollable main column.
  */
-export function AppShell({ me, health, data, today, query, onQueryChange, children }: AppShellProps) {
+export function AppShell({ me, pathname, health, data, today, query, onQueryChange, children }: AppShellProps) {
   const { logout, switchInstitution } = useAuth();
   const [navOpen, setNavOpen] = useState(false);
 
@@ -47,6 +48,7 @@ export function AppShell({ me, health, data, today, query, onQueryChange, childr
         open={navOpen}
         onClose={() => setNavOpen(false)}
         me={me}
+        pathname={pathname}
         onSwitchInstitution={switchInstitution}
         onLogout={logout}
       />
@@ -58,6 +60,7 @@ export function AppShell({ me, health, data, today, query, onQueryChange, childr
           connection={health.state}
           query={query}
           onQueryChange={onQueryChange}
+          searchEnabled={pathname === "/"}
           notifications={data.updates.filter((u) => u.important)}
           today={today}
         />
@@ -65,7 +68,7 @@ export function AppShell({ me, health, data, today, query, onQueryChange, childr
           {children}
         </main>
       </div>
-      <MobileTabBar onMenu={() => setNavOpen(true)} />
+      <MobileTabBar pathname={pathname} onMenu={() => setNavOpen(true)} />
     </div>
   );
 }

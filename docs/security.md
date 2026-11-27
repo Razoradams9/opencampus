@@ -89,7 +89,9 @@ forms cannot send without a CORS preflight.
 | student         | public registration (always), college admin | own profile, sessions |
 | faculty         | college admin                               | as student |
 | college_admin   | platform admin only                         | list members; set student/faculty; suspend members (not other admins or self) |
-| platform_admin  | CLI only                                    | create institutions, change status/registration, provision college admins |
+| platform_admin  | CLI only                                    | create institutions, change status/registration/timezone, provision college admins |
+
+Academic permissions (M4) are in the matrix in [`academic.md`](academic.md#permission-matrix).
 
 Registration bodies reject unknown fields, so `"role": "college_admin"` is a
 422, not a silent no-op. Roles are never read from the client.
@@ -138,6 +140,22 @@ is known; they are only reachable through the auth service. RLS applies to
 tenant-owned tables. Every future institution-owned table must have
 `institution_id NOT NULL`, be added to RLS in its migration, and be covered
 by an isolation test.
+
+### Academic tables (M4)
+
+`courses`, `subjects`, `enrolments`, `rooms`, `faculty_assignments` and
+`class_sessions` follow that rule: `institution_id NOT NULL`, RLS enabled and
+forced, tenant-only `SELECT`/`INSERT`/`UPDATE` policies, and **no `DELETE`
+grant or policy** (history is archived, never removed). Cross-references use
+composite foreign keys on `(institution_id, …)` (memberships, courses,
+subjects, rooms, assignments each expose an `(institution_id, id)` key), so
+even a buggy service cannot link one institution's student to another's
+course. Request bodies never carry `institution_id`; ids of other records are
+re-read with the tenant filter, and foreign ids answer 404, not 403.
+Role and ownership rules (student-own enrolments, faculty access only via an
+active assignment) are enforced in the service layer on top of RLS. Each
+module has isolation tests that query with deliberately missing filters.
+Details: [`academic.md`](academic.md).
 
 ## Open registration
 
@@ -320,4 +338,4 @@ exist only in the email and the user's browser.
 - Registration reveals whether an email is registered (409). Inherent to
   self-service sign-up without email verification.
 - HS256 with one shared secret; no key rotation (`kid`) yet.
-- No audit log of administrative actions.
+- No audit log of administrative actions (including academic record changes).

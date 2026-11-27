@@ -2,6 +2,7 @@
 
     python -m app.cli create-platform-admin --email ops@example.org --name "Ops"
     python -m app.cli seed-demo
+    python -m app.cli seed-academic-demo    # courses, enrolments, timetable (after seed-demo)
     python -m app.cli purge-rate-limits
     python -m app.cli dev-mail              # show the newest development email
 
@@ -12,8 +13,9 @@ import argparse
 import getpass
 import os
 import sys
+import uuid
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.security import hash_password
@@ -96,6 +98,99 @@ def seed_demo() -> None:
         print(f"  {email:34} " + ", ".join(f"{role.value}@{slug}" for slug, role in memberships))
 
 
+def seed_academic_demo(weeks: int = 4) -> None:
+    """Fictional academic records for Aldermoor, created through the real
+    services (so every validation applies). Safe to re-run: existing rows are
+    reused and already-booked sessions are skipped."""
+    from datetime import datetime, time, timedelta
+
+    from app.core.errors import ApiError
+    from app.models import ClassSession, Course, Enrolment, FacultyAssignment, Room, Subject
+    from app.schemas.academic import AssignmentCreate, CourseCreate, EnrolmentCreate, RoomCreate, SessionCreate, SubjectCreate
+    from app.services.academic import courses, enrolments, timetable
+
+    year, period = "2026-27", "Semester 1"
+    with session_factory()() as db:
+        institution = db.scalar(select(Institution).where(Institution.slug == "aldermoor"))
+        if institution is None:
+            sys.exit("Run seed-demo first (Aldermoor College not found)")
+        iid = institution.id
+        set_db_context(db, tenant_id=iid)
+
+        def member(email: str) -> Membership:
+            return db.scalar(
+                select(Membership).join(User, User.id == Membership.user_id).where(Membership.institution_id == iid, User.email == email)
+            )
+
+        course = db.scalar(select(Course).where(Course.institution_id == iid, Course.code == "BSC-CS"))
+        if course is None:
+            course = courses.create_course(db, iid, CourseCreate(
+                name="B.Sc. Computer Science", code="BSC-CS", degree_level="bachelor", duration_semesters=6,
+                description="Three-year undergraduate programme in computing."))
+        if not db.scalar(select(Course.id).where(Course.institution_id == iid, Course.code == "BA-ENG")):
+            courses.create_course(db, iid, CourseCreate(
+                name="B.A. English Literature", code="BA-ENG", degree_level="bachelor", duration_semesters=6))
+
+        subjects = {}
+        for code, name, semester, credits in [
+            ("CS101", "Programming Fundamentals", 1, 4), ("CS102", "Discrete Mathematics", 1, 3),
+            ("CS103", "Computer Systems", 1, 3), ("CS201", "Data Structures", 2, 4),
+        ]:
+            subject = db.scalar(select(Subject).where(Subject.institution_id == iid, Subject.course_id == course.id, Subject.code == code))
+            subjects[code] = subject or courses.create_subject(
+                db, iid, course.id, SubjectCreate(name=name, code=code, semester=semester, credits=credits))
+
+        rooms = {}
+        for name, building, capacity in [("Lab 1", "Turing Building", 40), ("Lecture Hall A", "Main Building", 120)]:
+            room = db.scalar(select(Room).where(Room.institution_id == iid, Room.name == name, Room.building == building))
+            rooms[name] = room or timetable.create_room(db, iid, RoomCreate(name=name, building=building, capacity=capacity))
+
+        def assignment(code: str, email: str) -> uuid.UUID:
+            faculty = member(email)
+            existing = db.scalar(select(FacultyAssignment.id).where(
+                FacultyAssignment.institution_id == iid, FacultyAssignment.subject_id == subjects[code].id,
+                FacultyAssignment.faculty_membership_id == faculty.id, FacultyAssignment.status == "active"))
+            return existing or timetable.create_assignment(db, iid, AssignmentCreate(
+                subject_id=subjects[code].id, faculty_membership_id=faculty.id, academic_year=year, academic_period=period)).id
+
+        lena, sam = "lena.varga@aldermoor.example", "sam.achebe@aldermoor.example"
+        plan = {  # weekday -> (start, minutes, subject, faculty, room)
+            0: [(time(9), 90, "CS101", lena, "Lecture Hall A"), (time(14), 120, "CS103", sam, "Lab 1")],
+            1: [(time(10), 60, "CS102", sam, "Lecture Hall A")],
+            2: [(time(9), 120, "CS101", lena, "Lab 1"), (time(13), 60, "CS102", sam, "Lecture Hall A")],
+            3: [(time(11), 90, "CS103", sam, "Lecture Hall A")],
+            4: [(time(9, 30), 60, "CS101", lena, "Lecture Hall A"), (time(11), 60, "CS102", sam, None)],
+        }
+        ids = {(code, email): assignment(code, email) for day in plan.values() for _, _, code, email, _ in day}
+
+        maya = member("maya.okafor@aldermoor.example")
+        if not db.scalar(select(Enrolment.id).where(Enrolment.institution_id == iid, Enrolment.student_membership_id == maya.id,
+                                                    Enrolment.course_id == course.id, Enrolment.status == "active")):
+            enrolments.create_enrolment(db, iid, EnrolmentCreate(
+                student_membership_id=maya.id, course_id=course.id, academic_year=year, academic_period=period))
+
+        zone = timetable.institution_zone(institution)
+        _, monday, _ = timetable.week_window(zone, None)
+        created = 0
+        for week in range(weeks):
+            for weekday, slots in plan.items():
+                day = (monday + timedelta(days=7 * week + weekday)).date()
+                for start, minutes, code, email, room in slots:
+                    start_at = datetime.combine(day, start, tzinfo=zone)
+                    try:
+                        set_db_context(db, tenant_id=iid)
+                        timetable.create_session(db, iid, SessionCreate(
+                            faculty_assignment_id=ids[(code, email)], room_id=rooms[room].id if room else None,
+                            start_at=start_at, end_at=start_at + timedelta(minutes=minutes)))
+                        created += 1
+                    except ApiError as exc:
+                        if exc.code not in ("room_conflict", "faculty_conflict"):
+                            raise
+        set_db_context(db, tenant_id=iid)
+        total = db.scalar(select(func.count()).select_from(ClassSession).where(ClassSession.institution_id == iid))
+    print(f"Academic demo data ready for Aldermoor ({zone.key}): {created} new sessions, {total} in total.")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="python -m app.cli")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -103,6 +198,7 @@ def main() -> None:
     admin.add_argument("--email", required=True)
     admin.add_argument("--name", required=True)
     commands.add_parser("seed-demo", help="create fictional demo institutions and users")
+    commands.add_parser("seed-academic-demo", help="create fictional courses, enrolments and a timetable (Aldermoor)")
     commands.add_parser("purge-rate-limits", help="delete expired rate-limit counters")
     commands.add_parser("dev-mail", help="print the newest email from the development sink")
     args = parser.parse_args()
@@ -123,6 +219,8 @@ def main() -> None:
         from app.services.rate_limit import get_rate_limiter
 
         print(f"Deleted {get_rate_limiter(get_settings()).purge_expired()} expired rate-limit counters")
+    elif args.command == "seed-academic-demo":
+        seed_academic_demo()
     else:
         seed_demo()
 

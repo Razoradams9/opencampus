@@ -18,17 +18,24 @@ interface NavItem {
   icon: LucideIcon;
 }
 
-// Three modules shown as a brief preview of what is coming.
-const UPCOMING: NavItem[] = [
-  { label: "Academics", icon: BookOpen },
-  { label: "Assignments", icon: ClipboardList },
-  { label: "Planner", icon: CalendarRange },
+interface PageItem extends NavItem {
+  to: string;
+}
+
+const PAGES: PageItem[] = [
+  { label: "Home", icon: Home, to: "/" },
+  { label: "Academics", icon: BookOpen, to: "/academics" },
+  { label: "Timetable", icon: CalendarRange, to: "/timetable" },
 ];
+
+// Shown as a brief preview of what is coming.
+const UPCOMING: NavItem[] = [{ label: "Assignments", icon: ClipboardList }];
 
 interface SidebarProps {
   open: boolean;
   onClose: () => void;
   me: Me;
+  pathname: string;
   onSwitchInstitution: (institutionId: string) => Promise<void>;
   onLogout: () => Promise<void>;
 }
@@ -38,7 +45,7 @@ function initials(name: string): string {
   return ((parts[0]?.[0] ?? "") + (parts.length > 1 ? parts[parts.length - 1][0] : "")).toUpperCase();
 }
 
-export function Sidebar({ open, onClose, me, onSwitchInstitution, onLogout }: SidebarProps) {
+export function Sidebar({ open, onClose, me, pathname, onSwitchInstitution, onLogout }: SidebarProps) {
   const [signingOut, setSigningOut] = useState(false);
   const role = me.active_institution ? ROLE_LABEL[me.active_institution.role] : null;
   const roleLine = [me.user.is_platform_admin ? "Platform admin" : null, role].filter(Boolean).join(" · ") || "No role";
@@ -77,15 +84,26 @@ export function Sidebar({ open, onClose, me, onSwitchInstitution, onLogout }: Si
         </div>
 
         <nav aria-label="Primary" className="flex-1 overflow-y-auto px-3 pt-5 pb-4">
-          <Link
-            to="/"
-            aria-current="page"
-            onClick={onClose}
-            className="flex items-center gap-3 rounded-xl bg-ink px-3 py-2.5 text-sm font-medium text-surface shadow-e2"
-          >
-            <Home className="size-4 text-periwinkle" aria-hidden="true" />
-            Home
-          </Link>
+          <ul className="space-y-1">
+            {PAGES.map(({ label, icon: Icon, to }) => {
+              const current = pathname === to;
+              return (
+                <li key={to}>
+                  <Link
+                    to={to}
+                    aria-current={current ? "page" : undefined}
+                    onClick={onClose}
+                    className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150 ${
+                      current ? "bg-ink text-surface shadow-e2" : "text-ink-muted hover:bg-sunken hover:text-ink"
+                    }`}
+                  >
+                    <Icon className={`size-4 ${current ? "text-periwinkle" : ""}`} aria-hidden="true" />
+                    {label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
 
           <p className="oc-eyebrow mt-6 mb-1.5 px-3">Coming soon</p>
           <ul>

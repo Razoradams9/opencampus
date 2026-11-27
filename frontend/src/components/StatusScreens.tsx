@@ -49,7 +49,7 @@ export function NotFound() {
     <section className="oc-panel mx-auto mt-6 max-w-xl px-6 py-8 sm:px-8">
       <p className="oc-eyebrow">404</p>
       <h1 className="mt-2 font-display text-2xl font-medium">This page does not exist yet.</h1>
-      <p className="mt-2 text-sm text-ink-muted">Only Home is available in this release.</p>
+      <p className="mt-2 text-sm text-ink-muted">Available pages: Home, Academics and Timetable.</p>
     </section>
   );
 }

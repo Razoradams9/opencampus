@@ -1,16 +1,22 @@
 # OpenCampus
 
-Open-source, multi-tenant academic platform. **Current milestone: M2 — Identity, authentication and multi-tenancy.**
+Open-source, multi-tenant academic platform. **Current milestone: M4 — Courses, enrolments and timetable.**
 
 - **M0 — Foundation:** FastAPI backend, health endpoint, React shell, design tokens.
 - **M1 — Student dashboard:** responsive Home dashboard on fictional demo content.
 - **M2 — Identity:** PostgreSQL, real accounts (Argon2id), JWT access tokens +
   rotating HttpOnly refresh cookies, institutions and memberships, backend role
   checks, tenant isolation with row-level security, login/registration UI and
-  institution switching. Dashboard *content* is still demo data.
+  institution switching.
+- **M3 — Hardening:** persistent rate limiting, password recovery.
+- **M4 — Academics:** institution-scoped courses and subjects, student
+  enrolments, rooms, faculty assignments and a conflict-checked weekly
+  timetable, with Academics and Timetable pages. The Home dashboard is still
+  demo data.
 
-No AI, coursework or faculty/admin dashboards exist yet. Security design:
-[`docs/security.md`](docs/security.md).
+No AI, coursework or administration UI exist yet (academic management is
+API-only until M5). Security design: [`docs/security.md`](docs/security.md);
+academic architecture, schema and API: [`docs/academic.md`](docs/academic.md).
 
 ## Quick start (Windows)
 
@@ -214,6 +220,18 @@ and connects as the app role, so RLS is exercised for real.
 cd frontend && npm run build    # type-check + production build
 ```
 
+## Academic demo data
+
+After `seed-demo`, fill Aldermoor with fictional courses, an enrolment for
+Maya and a four-week timetable (runs through the normal validation; safe to
+re-run):
+
+```bash
+cd backend && python -m app.cli seed-academic-demo
+```
+
+PowerShell: `cd backend; .\.venv\Scripts\python.exe -m app.cli seed-academic-demo`
+
 ## API overview
 
 | Method | Path | Access |
@@ -228,6 +246,7 @@ cd frontend && npm run build    # type-check + production build
 | GET | `/api/institution` | member of active institution |
 | GET/PATCH | `/api/institution/members[/{id}]` | college_admin |
 | POST/PATCH | `/api/platform/institutions[/{slug}]`, `…/{slug}/admins` | platform_admin |
+| * | `/api/academic/…` (courses, subjects, enrolments, rooms, faculty assignments, timetable) | see [`docs/academic.md`](docs/academic.md) |
 
 ## Configuration
 

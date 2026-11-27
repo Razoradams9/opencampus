@@ -6,13 +6,17 @@ import { AuthProvider, useAuth } from "./lib/auth/AuthContext";
 import type { Me } from "./lib/auth/types";
 import { navigate, useLocation } from "./lib/router";
 import { useBackendHealth } from "./lib/useBackendHealth";
+import { AcademicsPage } from "./pages/AcademicsPage";
 import { Dashboard } from "./pages/Dashboard";
 import { LoginPage } from "./pages/LoginPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
+import { TimetablePage } from "./pages/TimetablePage";
 
 const PUBLIC_ROUTES = new Set(["/login", "/register"]);
+/** Signed-in pages inside the app shell. */
+const APP_ROUTES = new Set(["/", "/academics", "/timetable"]);
 // Reachable whether or not someone is signed in (e.g. a reset link opened in
 // a browser that still has another session).
 const OPEN_ROUTES: Record<string, ComponentType> = {
@@ -31,16 +35,19 @@ function AuthenticatedApp({ me, pathname }: { me: Me; pathname: string }) {
   const data = useMemo(() => createDemoDashboard(today), [today]);
   const [query, setQuery] = useState("");
 
+  const institution = me.active_institution;
   let page;
-  if (pathname !== "/") page = <NotFound />;
-  else if (!me.active_institution) page = <NoInstitution me={me} />;
+  if (!APP_ROUTES.has(pathname)) page = <NotFound />;
+  else if (!institution) page = <NoInstitution me={me} />;
+  // key: remount on tenant switch so local state never crosses institutions.
+  else if (pathname === "/academics") page = <AcademicsPage key={institution.id} institution={institution} />;
+  else if (pathname === "/timetable") page = <TimetablePage key={institution.id} institution={institution} />;
   else
     page = (
       <Dashboard
-        // Remount on tenant switch so local state never crosses institutions.
-        key={me.active_institution.id}
+        key={institution.id}
         user={me.user}
-        institution={me.active_institution}
+        institution={institution}
         data={data}
         today={today}
         health={health}
@@ -50,7 +57,7 @@ function AuthenticatedApp({ me, pathname }: { me: Me; pathname: string }) {
     );
 
   return (
-    <AppShell me={me} health={health} data={data} today={today} query={query} onQueryChange={setQuery}>
+    <AppShell me={me} pathname={pathname} health={health} data={data} today={today} query={query} onQueryChange={setQuery}>
       {page}
     </AppShell>
   );

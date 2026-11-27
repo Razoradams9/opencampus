@@ -135,7 +135,23 @@ Fraunces 28–32px with a short coloured rule and a mono meta count).
 `SubjectMark` gives every subject a **shape and a colour** (cobalt circle,
 teal square, amber triangle, rose diamond, violet hexagon) so subjects are
 distinguishable without colour vision. Used in the hero, timetable, workload
-strip, task rows and progress.
+strip, task rows and progress. Real (API) subjects get their tone from a
+stable hash of the subject code (`toneFor` in `lib/academic/format.ts`), so a
+subject keeps its colour and shape on every page and device.
+
+### Real-data pages (M4)
+- **Academics** and **Timetable** reuse `SectionHeading`, `.oc-panel` and
+  `SubjectMark`; no new tokens.
+- `DataState` (`Loading`, `LoadError` with retry, `Empty`) is the standard
+  for every API-backed panel: never a blank box or a silent failure.
+- `.oc-reveal`: 180 ms rise for content arriving from the API (disabled by
+  reduced-motion like all motion).
+- Timetable layout: one column per weekday on desktop (weekend shown only if
+  it has classes), two columns on tablets, a single agenda column on phones
+  with empty days hidden. Today's column uses the accent band; cancelled
+  sessions keep their slot, struck through, with a text "Cancelled" label.
+- Mobile tab bar: Home · Classes (timetable) · Courses (academics) · Tasks
+  (dashboard section) · Menu. The active tab uses the accent colour.
 
 ### Colour blocking
 Cobalt (hero), navy (assistant), lavender (progress), apricot (event) and

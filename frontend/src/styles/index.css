@@ -251,3 +251,21 @@
     animation-duration: 0.01ms !important;
   }
 }
+
+/* Content arriving from the API: a short rise, never a delay. */
+@layer components {
+  .oc-reveal {
+    animation: oc-reveal 180ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+}
+
+@keyframes oc-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

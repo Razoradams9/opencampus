@@ -15,6 +15,8 @@ interface TopBarProps {
   onQueryChange: (value: string) => void;
   notifications: CampusUpdate[];
   today: Date;
+  /** Search filters the dashboard only; other pages hide it. */
+  searchEnabled: boolean;
 }
 
 function SearchField({
@@ -69,11 +71,13 @@ function SearchField({
   );
 }
 
-export function TopBar({ onMenuClick, menuOpen, connection, query, onQueryChange, notifications, today }: TopBarProps) {
+export function TopBar({ onMenuClick, menuOpen, connection, query, onQueryChange, notifications, today, searchEnabled }: TopBarProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [mobileSearch, setMobileSearch] = useState(false);
   const isWide = useMediaQuery("(min-width: 640px)");
-  const searchVisible = mobileSearch || query !== "";
+  const searchVisible = searchEnabled && (mobileSearch || query !== "");
+  const searchEnabledRef = useRef(searchEnabled);
+  searchEnabledRef.current = searchEnabled;
   // One search field, placed inline on wide screens and in a second row on phones.
   // On phones the row only mounts when opened, so it takes focus on mount.
   const searchField = (
@@ -84,6 +88,7 @@ export function TopBar({ onMenuClick, menuOpen, connection, query, onQueryChange
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement;
+      if (!searchEnabledRef.current) return;
       if (event.key !== "/" || target.closest("input, textarea, [contenteditable]")) return;
       event.preventDefault();
       // Focus synchronously when the field is mounted so the next keystroke lands in it;
@@ -114,7 +119,7 @@ export function TopBar({ onMenuClick, menuOpen, connection, query, onQueryChange
           <BrandMark />
         </div>
 
-        {isWide && <div className="max-w-md flex-1">{searchField}</div>}
+        {isWide && searchEnabled && <div className="max-w-md flex-1">{searchField}</div>}
 
         <div className="ml-auto flex items-center gap-1 sm:gap-2">
           {/* API status is a developer aid; students do not need it. */}
@@ -132,6 +137,7 @@ export function TopBar({ onMenuClick, menuOpen, connection, query, onQueryChange
             }}
             aria-label="Search"
             aria-expanded={searchVisible}
+            hidden={!searchEnabled}
             className={`grid size-10 place-items-center rounded-oc text-ink-muted hover:bg-sunken sm:hidden ${
               searchVisible ? "bg-sunken text-ink" : ""
             }`}
