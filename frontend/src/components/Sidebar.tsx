@@ -53,7 +53,7 @@ export function Sidebar({ open, onClose, me, pathname, onSwitchInstitution, onLo
   return (
     <>
       <div
-        className={`fixed inset-0 z-30 bg-ink/30 transition-opacity lg:hidden ${
+        className={`fixed inset-0 z-30 bg-accent/15 backdrop-blur-[2px] transition-opacity lg:hidden ${
           open ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={onClose}
@@ -94,10 +94,10 @@ export function Sidebar({ open, onClose, me, pathname, onSwitchInstitution, onLo
                     aria-current={current ? "page" : undefined}
                     onClick={onClose}
                     className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150 ${
-                      current ? "bg-ink text-surface shadow-e2" : "text-ink-muted hover:bg-sunken hover:text-ink"
+                      current ? "bg-surface text-accent shadow-e1 ring-1 ring-accent/15" : "text-ink-muted hover:bg-surface/70 hover:text-ink"
                     }`}
                   >
-                    <Icon className={`size-4 ${current ? "text-periwinkle" : ""}`} aria-hidden="true" />
+                    <Icon className={`size-4 ${current ? "text-accent" : ""}`} aria-hidden="true" />
                     {label}
                   </Link>
                 </li>

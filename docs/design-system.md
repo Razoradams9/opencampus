@@ -35,6 +35,11 @@ dominates.
 | Ink | `--oc-ink` / `-muted` / `-subtle` | `#141c3a` / `#4a5375` / `#5f6889` |
 | Signal | `--oc-signal` | `#f26b3a`, graphics only |
 
+**No dark fills.** Navy is for text only. Primary buttons and the skip link
+are cobalt with white text; the active nav item is a white pill with cobalt
+text; the logo tile is `--oc-accent-soft` with a cobalt arch; overlays are a
+translucent cobalt blur.
+
 Measured contrast: ink-subtle ≥4.8:1 on every surface (canvas 5.0, sidebar
 4.8, surface 5.5); white on every subject tone 4.9–6.3:1 and on both hero
 stops ≥6:1; apricot-ink on apricot 6.1:1. All text meets WCAG AA. Subject
