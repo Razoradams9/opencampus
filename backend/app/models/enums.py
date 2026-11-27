@@ -37,3 +37,12 @@ class DegreeLevel(str, enum.Enum):
     master = "master"
     doctorate = "doctorate"
     other = "other"
+
+
+class EnrolmentStatus(str, enum.Enum):
+    """active/suspended are "open"; withdrawn/completed are terminal history."""
+
+    active = "active"
+    suspended = "suspended"
+    withdrawn = "withdrawn"
+    completed = "completed"

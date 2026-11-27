@@ -86,9 +86,15 @@ class Actor:
         return self.client.patch(path, json=json, headers=self.headers, **kwargs)
 
 
+_DEVICE = iter(range(1, 1_000_000))
+
+
 def sign_in(make_client, email: str, memberships, *, name: str = "Test User", **extra) -> Actor:
+    """Create a user and sign them in from their own device (distinct IP, so
+    fixtures with many people stay under the per-IP login limit)."""
     user = make_user(email, memberships, name=name)
-    client = make_client()
+    n = next(_DEVICE)
+    client = make_client(client_host=f"10.{n // 65536 % 256}.{n // 256 % 256}.{n % 256}")
     return Actor(client, login(client, email, **extra), user)
 
 
@@ -104,3 +110,24 @@ def course_body(code: str = "BSC-CS", **overrides) -> dict:
 
 def subject_body(code: str = "CS101", **overrides) -> dict:
     return {"name": "Programming Fundamentals", "code": code, "semester": 1, "credits": 4, **overrides}
+
+
+def create_course(actor: Actor, **overrides) -> dict:
+    response = actor.post("/api/academic/courses", course_body(**overrides))
+    assert response.status_code == 201, response.text
+    return response.json()
+
+
+def create_subject(actor: Actor, course_id: str, **overrides) -> dict:
+    response = actor.post(f"/api/academic/courses/{course_id}/subjects", subject_body(**overrides))
+    assert response.status_code == 201, response.text
+    return response.json()
+
+
+def enrol(actor: Actor, membership_id, course_id: str, *, year: str = "2026-27", period: str = "Semester 1") -> dict:
+    response = actor.post(
+        "/api/academic/enrolments",
+        {"student_membership_id": str(membership_id), "course_id": course_id, "academic_year": year, "academic_period": period},
+    )
+    assert response.status_code == 201, response.text
+    return response.json()

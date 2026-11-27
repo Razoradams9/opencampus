@@ -45,7 +45,7 @@ from sqlalchemy import create_engine, text  # noqa: E402
 
 from app.main import create_app  # noqa: E402
 
-TABLES = "subjects, courses, password_reset_tokens, rate_limit_buckets, refresh_tokens, auth_sessions, memberships, users, institutions"
+TABLES = "enrolments, subjects, courses, password_reset_tokens, rate_limit_buckets, refresh_tokens, auth_sessions, memberships, users, institutions"
 
 
 @pytest.fixture(scope="session")
@@ -88,8 +88,9 @@ def make_client(app):
     """Each client has its own cookie jar, i.e. behaves like its own browser."""
     clients: list[TestClient] = []
 
-    def factory() -> TestClient:
-        client = TestClient(app, base_url="https://testserver")
+    def factory(client_host: str = "testclient") -> TestClient:
+        # A distinct client_host models a separate device (own IP for rate limits).
+        client = TestClient(app, base_url="https://testserver", client=(client_host, 50000))
         clients.append(client)
         return client
 
@@ -101,3 +102,28 @@ def make_client(app):
 @pytest.fixture
 def client(make_client):
     return make_client()
+
+
+@pytest.fixture
+def college(make_client):
+    """Two institutions with signed-in members: Aldermoor (admin, faculty, two
+    students) and Halvard (admin, student)."""
+    from app.models import MembershipRole
+    from tests.helpers import make_institution, membership_of, sign_in
+
+    aldermoor = make_institution("aldermoor", "Aldermoor College")
+    halvard = make_institution("halvard", "Halvard Institute")
+    people = {
+        "admin": ("admin@aldermoor.example", aldermoor, MembershipRole.college_admin, "Aldermoor Admin"),
+        "faculty": ("prof@aldermoor.example", aldermoor, MembershipRole.faculty, "Ada Prof"),
+        "student": ("maya@aldermoor.example", aldermoor, MembershipRole.student, "Maya Okafor"),
+        "student2": ("ravi@aldermoor.example", aldermoor, MembershipRole.student, "Ravi Shah"),
+        "other_admin": ("admin@halvard.example", halvard, MembershipRole.college_admin, "Halvard Admin"),
+        "other_student": ("tomas@halvard.example", halvard, MembershipRole.student, "Tomas Berg"),
+    }
+    result = {"aldermoor": aldermoor, "halvard": halvard}
+    for key, (email, institution, role, name) in people.items():
+        actor = sign_in(make_client, email, [(institution, role)], name=name)
+        actor.membership_id = membership_of(actor.user, institution).id
+        result[key] = actor
+    return result

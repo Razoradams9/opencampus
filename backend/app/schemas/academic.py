@@ -15,7 +15,7 @@ from typing import Annotated, ClassVar
 from pydantic import AfterValidator, BaseModel, Field, model_validator
 
 from app.models.course import CODE_PATTERN
-from app.models.enums import AcademicStatus, DegreeLevel
+from app.models.enums import AcademicStatus, DegreeLevel, EnrolmentStatus
 from app.schemas.auth import StrictModel
 
 
@@ -126,5 +126,54 @@ class SubjectOut(BaseModel):
     semester: int
     credits: float
     status: AcademicStatus
+    created_at: datetime
+    updated_at: datetime
+
+
+# ---- Enrolments (M4.2) -----------------------------------------------------
+
+
+def _check_academic_year(value: str) -> str:
+    value = value.strip()
+    match = re.fullmatch(r"(\d{4})-(\d{2})", value)
+    if not match or (int(match[1]) + 1) % 100 != int(match[2]):
+        raise ValueError("use the form 2026-27 (consecutive years)")
+    return value
+
+
+AcademicYear = Annotated[str, Field(min_length=7, max_length=7), AfterValidator(_check_academic_year)]
+AcademicPeriod = Annotated[str, Field(min_length=1, max_length=40), AfterValidator(_clean_text)]
+
+
+class EnrolmentCreate(StrictModel):
+    student_membership_id: uuid.UUID
+    course_id: uuid.UUID
+    academic_year: AcademicYear
+    academic_period: AcademicPeriod
+
+
+class EnrolmentUpdate(StrictModel):
+    # Course, student and period are fixed: a different one is a new enrolment,
+    # so history stays truthful. Timestamps are set by the server.
+    status: EnrolmentStatus
+
+
+class PersonRef(BaseModel):
+    membership_id: uuid.UUID
+    user_id: uuid.UUID
+    full_name: str
+    email: str
+
+
+class EnrolmentOut(BaseModel):
+    id: uuid.UUID
+    student: PersonRef
+    course: CourseRef
+    academic_year: str
+    academic_period: str
+    status: EnrolmentStatus
+    enrolled_at: datetime
+    completed_at: datetime | None
+    withdrawn_at: datetime | None
     created_at: datetime
     updated_at: datetime

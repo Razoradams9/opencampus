@@ -8,7 +8,8 @@ administration app) calls them; only the caller's membership role matters.
 
 from fastapi import APIRouter
 
-from app.api.academic import courses
+from app.api.academic import courses, enrolments
 
 router = APIRouter(prefix="/academic", tags=["academic"])
 router.include_router(courses.router)
+router.include_router(enrolments.router)

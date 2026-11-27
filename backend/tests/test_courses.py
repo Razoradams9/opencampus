@@ -8,36 +8,9 @@ from sqlalchemy.exc import IntegrityError, ProgrammingError
 from sqlalchemy.orm import Session
 
 from app.db.session import session_factory, set_db_context
-from app.models import Course, MembershipRole, Subject
+from app.models import Course, Subject
 from tests.conftest import TEST_DATABASE_URL
-from tests.helpers import course_body, make_institution, sign_in, subject_body
-
-
-@pytest.fixture
-def college(make_client):
-    """Aldermoor (admin, faculty, student) and Halvard (admin)."""
-    aldermoor = make_institution("aldermoor", "Aldermoor College")
-    halvard = make_institution("halvard", "Halvard Institute")
-    return {
-        "aldermoor": aldermoor,
-        "halvard": halvard,
-        "admin": sign_in(make_client, "admin@aldermoor.example", [(aldermoor, MembershipRole.college_admin)]),
-        "faculty": sign_in(make_client, "prof@aldermoor.example", [(aldermoor, MembershipRole.faculty)]),
-        "student": sign_in(make_client, "maya@aldermoor.example", [(aldermoor, MembershipRole.student)]),
-        "other_admin": sign_in(make_client, "admin@halvard.example", [(halvard, MembershipRole.college_admin)]),
-    }
-
-
-def create_course(actor, **overrides) -> dict:
-    response = actor.post("/api/academic/courses", course_body(**overrides))
-    assert response.status_code == 201, response.text
-    return response.json()
-
-
-def create_subject(actor, course_id: str, **overrides) -> dict:
-    response = actor.post(f"/api/academic/courses/{course_id}/subjects", subject_body(**overrides))
-    assert response.status_code == 201, response.text
-    return response.json()
+from tests.helpers import course_body, create_course, create_subject, subject_body
 
 
 # ---- CRUD -----------------------------------------------------------------

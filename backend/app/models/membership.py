@@ -14,6 +14,8 @@ class Membership(TimestampMixin, Base):
     __tablename__ = "memberships"
     __table_args__ = (
         UniqueConstraint("institution_id", "user_id", name="uq_memberships_institution_user"),
+        # Target for composite (tenant-aware) foreign keys from academic tables.
+        UniqueConstraint("institution_id", "id", name="uq_memberships_institution_id"),
         Index("ix_memberships_user_id", "user_id"),
     )
 
