@@ -5,6 +5,7 @@ import { SectionHeading } from "../components/ui/SectionHeading";
 import { SubjectMark } from "../components/ui/SubjectMark";
 import { academicApi } from "../lib/academic/api";
 import { toneFor } from "../lib/academic/format";
+import { toneStyle } from "../lib/subjects";
 import { DEGREE_LABEL, type Course, type Enrolment, type EnrolmentStatus, type FacultyAssignment } from "../lib/academic/types";
 import type { ActiveInstitution } from "../lib/auth/types";
 import { useApi } from "../lib/useApi";
@@ -64,11 +65,14 @@ function CourseRow({ course, meta, badge }: { course: Pick<Course, "id" | "code"
         aria-controls={panelId}
         className="flex w-full items-center gap-3 px-5 py-4 text-left transition-colors hover:bg-sunken/60 sm:px-6"
       >
-        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent-soft font-mono text-[0.625rem] font-semibold text-accent">
+        <span
+          style={toneStyle(toneFor(course.code))}
+          className="grid size-10 shrink-0 place-items-center rounded-xl bg-[color-mix(in_srgb,var(--tone)_14%,var(--oc-surface))] font-mono text-[0.625rem] font-semibold text-(--tone)"
+        >
           {course.code.split(/[-._]/)[0].slice(0, 4)}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-display text-lg leading-tight font-medium">{course.name}</span>
+          <span className="block font-display text-lg leading-tight font-medium">{course.name}</span>
           <span className="block truncate font-mono text-xs text-ink-subtle">
             {course.code} · {meta}
           </span>

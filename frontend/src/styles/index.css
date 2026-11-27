@@ -8,62 +8,65 @@
  */
 :root {
   /*
-   * Three-hue composition:
-   *   1. Slate-navy  — canvas, standard cards, topbar
-   *   2. Sage-teal   — sidebar, hero/welcome, academic-progress panel
-   *   3. Warm sand   — event card, campus-updates strip
+   * Light, multi-hue palette.
+   * Neutral, near-white reading surfaces with deep navy ink; colour comes
+   * from five hues that each own a job (and a dashboard region):
+   *   cobalt  — interactive accent, welcome hero, progress
+   *   teal    — today / schedule
+   *   coral   — due soon / tasks
+   *   violet  — campus news, sidebar tint
+   *   amber   — events, the warm campus corner
+   * Every text colour is ≥4.5:1 on canvas and surface; hero text ≥4.5:1 on
+   * every stop of the hero gradient.
    */
 
-  /* — Slate-navy family (canvas, cards) — */
-  --oc-canvas: #10151f;
-  --oc-surface: #1b2230;
-  --oc-surface-sunken: #131826;
-  --oc-periwinkle: #26304a;
-  --oc-line: #212a3e;
-  --oc-line-strong: #2d3a55;
+  /* — Surfaces — */
+  --oc-canvas: #f3f5fb;          /* cool off-white page */
+  --oc-surface: #ffffff;         /* cards */
+  --oc-surface-sunken: #eef1f8;  /* hover wells, inset rows */
+  --oc-periwinkle: #e3e8ff;      /* soft cobalt fill (avatars, marks) */
+  --oc-line: #e2e6f0;
+  --oc-line-strong: #c9d0e2;
 
-  /* — Sage-teal family (sidebar, hero, progress panel) — */
-  --oc-sidebar: #182623;
-  --oc-lavender: #1c2b27;   /* AcademicProgress panel */
-  --oc-hero: #1f3a34;       /* welcome block: white text ≥12:1 */
-  --oc-hero-light: #2a4f45; /* gradient end */
+  /* — Coloured regions — */
+  --oc-sidebar: #f1efff;         /* violet-tinted navigation */
+  --oc-lavender: #f3f0ff;        /* AcademicProgress panel */
+  --oc-hero: #3b4fd8;            /* welcome block start (cobalt) */
+  --oc-hero-light: #7b3fd1;      /* welcome block end (violet); white ≥6:1 */
+  --oc-apricot: #fff1e3;         /* event card */
+  --oc-apricot-ink: #9a3f06;     /* warm text on apricot ≈ 6.1:1 */
+  --oc-apricot-soft: #fff7ef;    /* CampusUpdates panel */
 
-  /* — Warm sand family (event card, campus updates) — */
-  --oc-apricot: #2b241c;
-  --oc-apricot-ink: #f0c9a6; /* warm foreground; on #2b241c ≈ 9.5:1 */
-  --oc-apricot-soft: #242019; /* CampusUpdates panel */
+  /* — Ink: deep navy scale — */
+  --oc-ink: #141c3a;
+  --oc-ink-muted: #4a5375;       /* 7.5:1 on surface */
+  --oc-ink-subtle: #5f6889;      /* 5.5:1 surface, 5.0 canvas, 4.8 sidebar */
 
-  /* Ink — bumped for the new surfaces */
-  --oc-ink: #e8edf7;
-  --oc-ink-muted: #93a7c4;   /* ≥5.9:1 on every family background */
-  --oc-ink-subtle: #7d92b8;  /* 5.0:1 on surface; use ink-muted for body copy on sage */
+  /* — Accents — */
+  --oc-accent: #3550dc;          /* interactive: links, focus, active nav */
+  --oc-accent-soft: #e6eaff;
+  --oc-signal: #f26b3a;          /* brand mark, one warm highlight (graphics) */
+  --oc-signal-strong: #c7461a;   /* signal behind white text (≥4.6:1) */
 
-  /* Accents — used sparingly, each with a job */
-  --oc-accent: #4f7bff; /* interactive: links, focus, active nav */
-  --oc-accent-soft: #1a2a4a;
-  --oc-signal: #f07348; /* brand mark, single highlight per view (graphics) */
-  --oc-signal-strong: #e05a30; /* signal behind white text (≥4.6:1) */
+  --oc-success: #137a4b;
+  --oc-success-soft: #ddf4e8;
+  --oc-danger: #c0312b;
+  --oc-danger-soft: #fde4e2;
+  --oc-pending: #8a5a00;
+  --oc-pending-soft: #fdf0d2;
 
-  --oc-success: #22c55e;
-  --oc-success-soft: #0f2a1a;
-  --oc-danger: #f87171;
-  --oc-danger-soft: #2a1010;
-  --oc-pending: #fbbf24;
-  --oc-pending-soft: #2a2008;
+  /* Subject coding: strong enough for white text and for marks on white. */
+  --oc-subject-cobalt: #3550dc;  /* white 6.3:1 */
+  --oc-subject-teal: #0b7f7a;    /* white 4.9:1 */
+  --oc-subject-amber: #c2410c;   /* reads orange; white 5.2:1 */
+  --oc-subject-rose: #d02c5e;    /* white 5.0:1 */
+  --oc-subject-violet: #7442d6;  /* white 6.0:1 */
 
-  /* Subject coding — identifies a subject across progress, schedule and tasks */
-  --oc-subject-cobalt: #4f7bff;
-  --oc-subject-teal: #3ecfc4;  /* bluer/brighter so it shows on sage panels */
-  --oc-subject-amber: #fbbf24;
-  --oc-subject-rose: #fb7185;
-  --oc-subject-violet: #a78bfa;
-
-  /* Elevation — softer, less spread */
-  --oc-shadow-1: 0 1px 2px rgb(0 0 0 / 0.25), 0 3px 10px -4px rgb(0 0 0 / 0.35);
-  --oc-shadow-2: 0 2px 4px rgb(0 0 0 / 0.28), 0 8px 20px -10px rgb(0 0 0 / 0.45);
-  --oc-shadow-3: 0 4px 8px rgb(0 0 0 / 0.3), 0 16px 36px -14px rgb(0 0 0 / 0.55);
-  /* Top-edge highlight: subtle glow on raised dark surfaces. */
-  --oc-highlight: inset 0 1px 0 rgb(255 255 255 / 0.08);
+  /* Elevation: navy-tinted, soft. */
+  --oc-shadow-1: 0 1px 2px rgb(20 28 58 / 0.05), 0 4px 14px -6px rgb(20 28 58 / 0.12);
+  --oc-shadow-2: 0 2px 4px rgb(20 28 58 / 0.06), 0 12px 28px -12px rgb(20 28 58 / 0.22);
+  --oc-shadow-3: 0 4px 10px rgb(20 28 58 / 0.08), 0 22px 44px -18px rgb(20 28 58 / 0.3);
+  --oc-highlight: inset 0 1px 0 rgb(255 255 255 / 0.9);
 
   /* Layout */
   --oc-sidebar-width: 15.5rem;
@@ -122,12 +125,13 @@
   }
   body {
     @apply font-sans text-ink;
-    /* Three-hue composition: sage glow (top-left, over sidebar/hero band) +
-       faint warm glow (bottom-right, over campus corner). Two radials max. */
+    /* Soft multi-hue light: cobalt top-left, violet top-right, peach bottom. */
     background-color: var(--oc-canvas);
     background-image:
-      radial-gradient(80rem 55rem at 20% -15%, rgb(42 79 69 / 0.28), transparent 65%),
-      radial-gradient(45rem 35rem at 95% 85%, rgb(70 56 38 / 0.10), transparent 60%);
+      radial-gradient(60rem 40rem at 10% -10%, rgb(53 80 220 / 0.10), transparent 60%),
+      radial-gradient(50rem 36rem at 100% 0%, rgb(116 66 214 / 0.08), transparent 60%),
+      radial-gradient(50rem 36rem at 80% 110%, rgb(242 107 58 / 0.08), transparent 60%),
+      radial-gradient(40rem 30rem at 0% 100%, rgb(11 127 122 / 0.07), transparent 60%);
     background-attachment: fixed;
   }
   :focus-visible {
@@ -173,10 +177,10 @@
     box-shadow: inset 0 -2px 0 var(--oc-accent);
   }
 
-  /* Welcome block: friendly sage with the blueprint grid drawn in white. */
+  /* Welcome block: cobalt→violet with the blueprint grid drawn in white. */
   .oc-hero {
     border-radius: var(--oc-radius-card);
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 18px 40px -18px rgb(20 60 50 / 0.65);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 18px 40px -18px rgb(59 79 216 / 0.55);
     background-color: var(--oc-hero);
     background-image:
       linear-gradient(to right, rgb(255 255 255 / 0.07) 1px, transparent 1px),
@@ -202,15 +206,15 @@
     display: none;
   }
 
-  /* Blueprint grid over a deep sage wash: auth aside. */
+  /* Blueprint grid over a light multi-hue wash: auth aside. */
   .oc-blueprint-wash {
     background-color: var(--oc-sidebar);
     background-image:
-      linear-gradient(to right, rgb(255 255 255 / 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(255 255 255 / 0.05) 1px, transparent 1px),
-      linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px),
-      linear-gradient(125deg, #16211e 0%, #1a2823 55%, #1e2f29 100%);
+      linear-gradient(to right, rgb(53 80 220 / 0.07) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(53 80 220 / 0.07) 1px, transparent 1px),
+      linear-gradient(to right, rgb(53 80 220 / 0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(53 80 220 / 0.035) 1px, transparent 1px),
+      linear-gradient(125deg, #e6eaff 0%, #f1ebff 50%, #ffeee3 100%);
     background-size:
       96px 96px,
       96px 96px,

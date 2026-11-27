@@ -12,23 +12,34 @@ All tokens live in `frontend/src/styles/index.css`:
 
 ## Colour
 
-| Role            | Token                  | Use                                        |
-| --------------- | ---------------------- | ------------------------------------------ |
-| Canvas          | `--oc-canvas`          | page background (saturated sky, not white) |
-| Sidebar         | `--oc-sidebar`         | periwinkle-tinted navigation surface       |
-| Surface         | `--oc-surface`         | panels (kept near-white for reading)       |
-| Sunken          | `--oc-surface-sunken`  | hover wells                                |
-| Periwinkle      | `--oc-periwinkle`      | brand mark, supporting fills               |
-| Lavender        | `--oc-lavender`        | reserved secondary tint                    |
-| Ink             | `--oc-ink` (+ muted/subtle) | text, deep navy scale                 |
-| Line            | `--oc-line` (+ strong) | 1px rules and borders                      |
-| Accent          | `--oc-accent`          | interactive only: links, focus, active nav |
-| Signal          | `--oc-signal`          | one warm highlight per view, brand door    |
-| Status          | success / danger / pending (+ `-soft`) | state, never decoration    |
-| Subject / section | `--oc-subject-{cobalt,teal,amber,rose,violet}` | identifies a subject across progress, schedule and assignments; also each dashboard section's accent |
+**Light, multi-hue.** Near-white reading surfaces and deep navy ink; colour
+comes from five hues, each owning a job and a region, so no single colour
+dominates.
 
-All text colours meet WCAG AA (≥4.5:1) on canvas and surface; `--oc-signal`
-is for graphics only, never text.
+| Hue | Token | Owns |
+| --- | ----- | ---- |
+| Cobalt `#3550dc` | `--oc-accent`, `--oc-subject-cobalt` | interactive accent (links, focus, active tab), hero start, progress |
+| Teal `#0b7f7a` | `--oc-subject-teal` | today / schedule |
+| Orange `#c2410c` | `--oc-subject-amber` | subject tone; warm campus corner (with apricot surfaces) |
+| Rose `#d02c5e` | `--oc-subject-rose` | due soon / tasks |
+| Violet `#7442d6` | `--oc-subject-violet` | campus news, hero end, sidebar tint |
+
+| Role | Token | Value |
+| ---- | ----- | ----- |
+| Canvas | `--oc-canvas` | `#f3f5fb` + four faint hue glows (cobalt, violet, peach, teal) |
+| Surface / sunken | `--oc-surface` / `--oc-surface-sunken` | `#ffffff` / `#eef1f8` |
+| Sidebar | `--oc-sidebar` | `#f1efff` (violet tint) |
+| Hero | `--oc-hero` → `--oc-hero-light` | cobalt → violet gradient, white text |
+| Progress panel | `--oc-lavender` | `#f3f0ff` |
+| Event / campus | `--oc-apricot`, `--oc-apricot-soft`, `--oc-apricot-ink` | peach surfaces, burnt-orange text |
+| Ink | `--oc-ink` / `-muted` / `-subtle` | `#141c3a` / `#4a5375` / `#5f6889` |
+| Signal | `--oc-signal` | `#f26b3a`, graphics only |
+
+Measured contrast: ink-subtle ≥4.8:1 on every surface (canvas 5.0, sidebar
+4.8, surface 5.5); white on every subject tone 4.9–6.3:1 and on both hero
+stops ≥6:1; apricot-ink on apricot 6.1:1. All text meets WCAG AA. Subject
+tones are dark enough for white text (featured schedule block) and vivid
+enough as marks on white.
 
 ## Type
 
