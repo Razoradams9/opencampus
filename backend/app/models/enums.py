@@ -46,3 +46,13 @@ class EnrolmentStatus(str, enum.Enum):
     suspended = "suspended"
     withdrawn = "withdrawn"
     completed = "completed"
+
+
+class AssignmentStatus(str, enum.Enum):
+    active = "active"
+    ended = "ended"
+
+
+class SessionStatus(str, enum.Enum):
+    scheduled = "scheduled"
+    cancelled = "cancelled"

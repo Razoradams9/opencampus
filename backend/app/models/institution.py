@@ -24,5 +24,8 @@ class Institution(TimestampMixin, Base):
     )
     # Off by default: an institution must opt in to public student sign-up.
     allow_self_registration: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
+    # IANA zone (e.g. "Asia/Kolkata") used to interpret timetable weeks.
+    # Timestamps are always stored in UTC; this only affects day/week boundaries.
+    timezone: Mapped[str] = mapped_column(String(64), nullable=False, server_default="UTC")
 
     memberships: Mapped[list["Membership"]] = relationship(back_populates="institution")  # noqa: F821

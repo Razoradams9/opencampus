@@ -48,6 +48,9 @@ class Subject(TimestampMixin, Base):
         # Codes are unique within a course; two courses may reuse a code.
         UniqueConstraint("institution_id", "course_id", "code", name="uq_subjects_course_code"),
         UniqueConstraint("institution_id", "id", name="uq_subjects_institution_id"),
+        # FK target that also pins the course: (subject, course) pairs are
+        # always consistent for rows that reference it (M4.3).
+        UniqueConstraint("institution_id", "course_id", "id", name="uq_subjects_institution_course_id"),
         # Composite FK: the course must belong to the same institution.
         ForeignKeyConstraint(
             ["institution_id", "course_id"],

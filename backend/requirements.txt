@@ -6,3 +6,4 @@ psycopg[binary]==3.3.9
 argon2-cffi==25.1.0
 pyjwt==2.15.1
 email-validator==2.4.0
+tzdata==2025.2

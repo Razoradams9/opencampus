@@ -186,9 +186,11 @@ def test_student_cannot_enrol_or_change_status(college, course):
 def test_faculty_without_assignment_has_no_enrolment_access(college, course):
     e = enrol(college["admin"], college["student"].membership_id, course["id"])
     faculty = college["faculty"]
-    assert faculty.get("/api/academic/enrolments").status_code == 403
+    # Scoped by teaching assignments (M4.3): with none, nothing is visible.
+    assert faculty.get("/api/academic/enrolments").json() == []
     assert faculty.get(f"/api/academic/enrolments/{e['id']}").status_code == 404
-    assert faculty.get(f"/api/academic/courses/{course['id']}/enrolments").status_code == 403
+    roster = faculty.get(f"/api/academic/courses/{course['id']}/enrolments")
+    assert roster.status_code == 403 and roster.json()["code"] == "not_assigned"
     assert faculty.get("/api/academic/enrolments/me").json() == []
 
 

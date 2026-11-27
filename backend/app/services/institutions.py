@@ -25,7 +25,12 @@ def get_by_slug(db: Session, slug: str) -> Institution:
 
 
 def create(db: Session, data: InstitutionCreate) -> Institution:
-    institution = Institution(slug=data.slug, name=data.name.strip(), allow_self_registration=data.allow_self_registration)
+    institution = Institution(
+        slug=data.slug,
+        name=data.name.strip(),
+        allow_self_registration=data.allow_self_registration,
+        timezone=data.timezone,
+    )
     db.add(institution)
     try:
         db.commit()
@@ -41,6 +46,8 @@ def update(db: Session, slug: str, data: InstitutionUpdate) -> Institution:
         institution.status = data.status
     if data.allow_self_registration is not None:
         institution.allow_self_registration = data.allow_self_registration
+    if data.timezone is not None:
+        institution.timezone = data.timezone
     db.commit()
     return institution
 

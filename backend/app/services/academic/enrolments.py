@@ -3,13 +3,14 @@
 Who sees what (enforced here, on top of tenant RLS):
   college_admin  every enrolment in the institution
   student        only enrolments of their own membership
-  faculty        no enrolment data unless explicitly scoped (see scope())
+  faculty        only enrolments matching one of their *active* teaching
+                 assignments (same course, academic year and period)
 """
 
 import uuid
 from dataclasses import dataclass
 
-from sqlalchemy import Select, select
+from sqlalchemy import Select, exists, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -18,9 +19,11 @@ from app.core.errors import ApiError, forbidden
 from app.core.security import utcnow
 from app.models import (
     AcademicStatus,
+    AssignmentStatus,
     Course,
     Enrolment,
     EnrolmentStatus,
+    FacultyAssignment,
     Membership,
     MembershipRole,
     MembershipStatus,
@@ -65,7 +68,21 @@ def scope(query: Select, tenant: TenantContext) -> Select:
         return query
     if tenant.role == MembershipRole.student:
         return query.where(Enrolment.student_membership_id == tenant.membership.id)
+    if tenant.role == MembershipRole.faculty:
+        return query.where(_taught_by(tenant.membership.id))
     raise forbidden("insufficient_role", "Your role does not allow access to enrolment records")
+
+
+def _taught_by(faculty_membership_id: uuid.UUID):
+    """The explicit grant: an active assignment for the enrolment's course and period."""
+    return exists().where(
+        FacultyAssignment.institution_id == Enrolment.institution_id,
+        FacultyAssignment.faculty_membership_id == faculty_membership_id,
+        FacultyAssignment.status == AssignmentStatus.active,
+        FacultyAssignment.course_id == Enrolment.course_id,
+        FacultyAssignment.academic_year == Enrolment.academic_year,
+        FacultyAssignment.academic_period == Enrolment.academic_period,
+    )
 
 
 def to_out(row) -> EnrolmentOut:
@@ -133,6 +150,17 @@ def list_course_enrolments(
     query = scope(_base(tenant.institution_id), tenant).where(Enrolment.course_id == course_id)
     if not db.scalar(select(Course.id).where(Course.institution_id == tenant.institution_id, Course.id == course_id)):
         raise not_found("course", "Course")
+    if tenant.role == MembershipRole.faculty and not db.scalar(
+        select(FacultyAssignment.id)
+        .where(
+            FacultyAssignment.institution_id == tenant.institution_id,
+            FacultyAssignment.course_id == course_id,
+            FacultyAssignment.faculty_membership_id == tenant.membership.id,
+            FacultyAssignment.status == AssignmentStatus.active,
+        )
+        .limit(1)
+    ):
+        raise forbidden("not_assigned", "You are not assigned to teach in this course")
     if status is not None:
         query = query.where(Enrolment.status == status)
     query = query.order_by(User.full_name, Enrolment.enrolled_at.desc(), Enrolment.id)
