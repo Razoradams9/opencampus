@@ -1,10 +1,7 @@
 import uuid
-from typing import Annotated
+from fastapi import APIRouter
 
-from fastapi import APIRouter, Depends
-
-from app.api.deps import CurrentTenant, DbSession, TenantContext, require_roles
-from app.models import MembershipRole
+from app.api.deps import CollegeAdmin, CurrentTenant, DbSession
 from app.schemas.institution import CurrentInstitution, InstitutionOut, InstitutionPublic, MemberOut, MemberUpdate
 from app.services import institutions as service
 
@@ -13,9 +10,6 @@ public_router = APIRouter(prefix="/institutions", tags=["institutions"])
 
 # Current tenant: everything here is scoped to the session's active institution.
 tenant_router = APIRouter(prefix="/institution", tags=["institution"])
-
-CollegeAdmin = Annotated[TenantContext, Depends(require_roles(MembershipRole.college_admin))]
-
 
 @public_router.get("/{slug}", response_model=InstitutionPublic)
 def lookup(slug: str, db: DbSession):

@@ -45,7 +45,7 @@ from sqlalchemy import create_engine, text  # noqa: E402
 
 from app.main import create_app  # noqa: E402
 
-TABLES = "password_reset_tokens, rate_limit_buckets, refresh_tokens, auth_sessions, memberships, users, institutions"
+TABLES = "subjects, courses, password_reset_tokens, rate_limit_buckets, refresh_tokens, auth_sessions, memberships, users, institutions"
 
 
 @pytest.fixture(scope="session")

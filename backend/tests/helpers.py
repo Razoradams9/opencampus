@@ -66,3 +66,41 @@ def bearer(token: str) -> dict[str, str]:
 
 def csrf_headers(client: TestClient) -> dict[str, str]:
     return {"X-CSRF-Token": client.cookies.get(get_settings().csrf_cookie_name, "")}
+
+
+class Actor:
+    """A signed-in member: their own client (cookie jar) plus auth header."""
+
+    def __init__(self, client: TestClient, token: str, user: User):
+        self.client = client
+        self.headers = bearer(token)
+        self.user = user
+
+    def get(self, path: str, **kwargs):
+        return self.client.get(path, headers=self.headers, **kwargs)
+
+    def post(self, path: str, json=None, **kwargs):
+        return self.client.post(path, json=json, headers=self.headers, **kwargs)
+
+    def patch(self, path: str, json=None, **kwargs):
+        return self.client.patch(path, json=json, headers=self.headers, **kwargs)
+
+
+def sign_in(make_client, email: str, memberships, *, name: str = "Test User", **extra) -> Actor:
+    user = make_user(email, memberships, name=name)
+    client = make_client()
+    return Actor(client, login(client, email, **extra), user)
+
+
+def course_body(code: str = "BSC-CS", **overrides) -> dict:
+    return {
+        "name": "B.Sc. Computer Science",
+        "code": code,
+        "degree_level": "bachelor",
+        "duration_semesters": 6,
+        **overrides,
+    }
+
+
+def subject_body(code: str = "CS101", **overrides) -> dict:
+    return {"name": "Programming Fundamentals", "code": code, "semester": 1, "credits": 4, **overrides}

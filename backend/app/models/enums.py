@@ -19,3 +19,21 @@ class MembershipRole(str, enum.Enum):
 class MembershipStatus(str, enum.Enum):
     active = "active"
     suspended = "suspended"
+
+
+class AcademicStatus(str, enum.Enum):
+    """Lifecycle of catalogue records (courses, subjects, rooms). Archiving
+    replaces deletion: archived rows stay referenced by history."""
+
+    active = "active"
+    archived = "archived"
+
+
+class DegreeLevel(str, enum.Enum):
+    certificate = "certificate"
+    diploma = "diploma"
+    associate = "associate"
+    bachelor = "bachelor"
+    master = "master"
+    doctorate = "doctorate"
+    other = "other"

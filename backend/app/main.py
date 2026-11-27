@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth, health, institutions, platform
+from app.api import academic, auth, health, institutions, platform
 from app.core.config import get_settings
 from app.core.errors import ApiError, api_error_handler
 
@@ -26,6 +26,7 @@ def create_app() -> FastAPI:
     app.include_router(institutions.public_router, prefix="/api")
     app.include_router(institutions.tenant_router, prefix="/api")
     app.include_router(platform.router, prefix="/api")
+    app.include_router(academic.router, prefix="/api")
     return app
 
 

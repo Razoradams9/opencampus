@@ -14,7 +14,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Annotated
 
-from fastapi import Depends, Request
+from fastapi import Depends, Query, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -130,3 +130,19 @@ def verify_csrf(request: Request, settings: AppSettings) -> None:
     header = request.headers.get("x-csrf-token", "")
     if not cookie or not header or not constant_time_equals(cookie, header):
         raise forbidden("csrf_failed", "CSRF validation failed")
+
+
+CollegeAdmin = Annotated[TenantContext, Depends(require_roles(MembershipRole.college_admin))]
+
+
+@dataclass
+class Page:
+    limit: int
+    offset: int
+
+
+def pagination(limit: int = Query(100, ge=1, le=500), offset: int = Query(0, ge=0, le=100_000)) -> Page:
+    return Page(limit, offset)
+
+
+Pagination = Annotated[Page, Depends(pagination)]
