@@ -74,3 +74,11 @@ class ResourceType(str, enum.Enum):
     video = "video"
     link = "link"
     note = "note"
+
+
+class LatePolicy(str, enum.Enum):
+    """What happens after the deadline."""
+
+    reject = "reject"  # no submissions after due_at
+    accept = "accept"  # accepted, flagged late
+    accept_until = "accept_until"  # accepted and flagged late until late_cutoff_at

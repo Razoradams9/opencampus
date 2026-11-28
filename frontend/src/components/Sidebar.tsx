@@ -28,10 +28,11 @@ const PAGES: PageItem[] = [
   { label: "Academics", icon: BookOpen, to: "/academics" },
   { label: "Timetable", icon: CalendarRange, to: "/timetable" },
   { label: "Learning", icon: Library, to: "/learning" },
+  { label: "Assignments", icon: ClipboardList, to: "/assignments" },
 ];
 
 // Shown as a brief preview of what is coming.
-const UPCOMING: NavItem[] = [{ label: "Assignments", icon: ClipboardList }];
+const UPCOMING: NavItem[] = [];
 
 interface SidebarProps {
   open: boolean;
@@ -107,7 +108,7 @@ export function Sidebar({ open, onClose, me, pathname, onSwitchInstitution, onLo
             })}
           </ul>
 
-          <p className="oc-eyebrow mt-6 mb-1.5 px-3">Coming soon</p>
+          {UPCOMING.length > 0 && <p className="oc-eyebrow mt-6 mb-1.5 px-3">Coming soon</p>}
           <ul>
             {UPCOMING.map(({ label, icon: Icon }) => (
               <li key={label}>

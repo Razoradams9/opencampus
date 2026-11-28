@@ -167,7 +167,7 @@ subject keeps its colour and shape on every page and device.
   with empty days hidden. Today's column uses the accent band; cancelled
   sessions keep their slot, struck through, with a text "Cancelled" label.
 - Mobile tab bar: Home · Classes (timetable) · Courses (academics) · Tasks
-  (dashboard section) · Menu. The active tab uses the accent colour.
+  (assignments) · Menu. The active tab uses the accent colour.
 
 ### Colour blocking
 Cobalt (hero), navy (assistant), lavender (progress), apricot (event) and

@@ -1,6 +1,5 @@
 import { BookOpen, CalendarClock, House, ListChecks, Menu } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useEffect, useState } from "react";
 import { navigate } from "../lib/router";
 
 interface Tab {
@@ -17,7 +16,7 @@ const TABS: Tab[] = [
   { id: "home", label: "Home", icon: House, to: "/" },
   { id: "timetable", label: "Classes", icon: CalendarClock, to: "/timetable" },
   { id: "academics", label: "Courses", icon: BookOpen, to: "/academics" },
-  { id: "tasks", label: "Tasks", icon: ListChecks, to: "/", section: "tasks" },
+  { id: "tasks", label: "Tasks", icon: ListChecks, to: "/assignments" },
 ];
 
 function scrollToSection(id: string, attempts = 10) {
@@ -28,21 +27,7 @@ function scrollToSection(id: string, attempts = 10) {
 
 /** Floating thumb-reach navigation for phones and tablets (hidden at ≥1024px). */
 export function MobileTabBar({ pathname, onMenu }: { pathname: string; onMenu: () => void }) {
-  const [dashboardSection, setDashboardSection] = useState("home");
-
-  // On the dashboard, highlight Tasks while its section crosses mid-screen.
-  useEffect(() => {
-    if (pathname !== "/") return;
-    const el = document.getElementById("tasks");
-    if (!el) return;
-    const observer = new IntersectionObserver(([entry]) => setDashboardSection(entry.isIntersecting ? "tasks" : "home"), {
-      rootMargin: "-45% 0px -50% 0px",
-    });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [pathname]);
-
-  const active = pathname === "/" ? dashboardSection : TABS.find((t) => t.to === pathname && !t.section)?.id;
+  const active = TABS.find((t) => t.to === pathname && !t.section)?.id;
 
   const go = (tab: Tab) => {
     if (tab.section) {

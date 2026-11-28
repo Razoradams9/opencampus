@@ -20,6 +20,7 @@ from app.models.enums import (
     AssignmentStatus,
     DegreeLevel,
     EnrolmentStatus,
+    LatePolicy,
     PublicationStatus,
     ResourceType,
     SessionStatus,
@@ -388,3 +389,120 @@ class ResourceOut(BaseModel):
     published_at: datetime | None
     created_at: datetime
     updated_at: datetime
+
+
+# ---- Assignments and submissions (M4.5) ------------------------------------
+
+Marks = Annotated[Decimal, Field(ge=0, le=1000, max_digits=6, decimal_places=2)]
+MaxMarks = Annotated[Decimal, Field(gt=0, le=1000, max_digits=6, decimal_places=2)]
+
+
+def check_assignment_dates(available_from: datetime, due_at: datetime, late_policy: LatePolicy, late_cutoff_at: datetime | None) -> None:
+    if due_at <= available_from:
+        raise ValueError("the deadline must be after the available-from time")
+    if late_policy == LatePolicy.accept_until:
+        if late_cutoff_at is None:
+            raise ValueError("set a final cut-off for late submissions")
+        if late_cutoff_at <= due_at:
+            raise ValueError("the late cut-off must be after the deadline")
+    elif late_cutoff_at is not None:
+        raise ValueError("a late cut-off only applies to the 'accept until' policy")
+
+
+class AssignmentWorkCreate(StrictModel):
+    title: Title
+    instructions: LongText
+    reference_url: HttpUrlText | None = None
+    available_from: UtcDatetime
+    due_at: UtcDatetime
+    late_policy: LatePolicy = LatePolicy.reject
+    late_cutoff_at: UtcDatetime | None = None
+    max_marks: MaxMarks
+
+    @model_validator(mode="after")
+    def _dates(self):
+        check_assignment_dates(self.available_from, self.due_at, self.late_policy, self.late_cutoff_at)
+        return self
+
+
+class AssignmentWorkUpdate(PatchModel):
+    NULLABLE = frozenset({"reference_url", "late_cutoff_at"})
+
+    title: Title | None = None
+    instructions: LongText | None = None
+    reference_url: HttpUrlText | None = None
+    available_from: UtcDatetime | None = None
+    due_at: UtcDatetime | None = None
+    late_policy: LatePolicy | None = None
+    late_cutoff_at: UtcDatetime | None = None
+    max_marks: MaxMarks | None = None
+
+
+class GradeOut(BaseModel):
+    marks_awarded: float
+    feedback: str | None
+    graded_at: UtcOut
+    graded_by: TeacherRef
+
+
+class StudentProgress(BaseModel):
+    """The calling student's own state for an assignment."""
+
+    status: str  # not_submitted | submitted | graded
+    attempts: int
+    last_submitted_at: UtcOut | None
+    is_late: bool
+    grade: GradeOut | None
+
+
+class AssignmentWorkOut(BaseModel):
+    id: uuid.UUID
+    course: CourseRef
+    subject: SubjectRef
+    title: str
+    instructions: str
+    reference_url: str | None
+    available_from: UtcOut
+    due_at: UtcOut
+    late_policy: LatePolicy
+    late_cutoff_at: UtcOut | None
+    max_marks: float
+    status: PublicationStatus
+    published_at: UtcOut | None
+    created_by: TeacherRef
+    # Server's view of the window right now: not_open | open | late | closed.
+    window: str
+    me: StudentProgress | None = None  # students only
+    submitted_students: int | None = None  # managers only
+    graded_students: int | None = None  # managers only
+    created_at: datetime
+    updated_at: datetime
+
+
+class SubmissionCreate(StrictModel):
+    body: LongText
+
+    @model_validator(mode="after")
+    def _not_blank(self):
+        if not self.body.strip():
+            raise ValueError("the submission is empty")
+        return self
+
+
+class GradeCreate(StrictModel):
+    marks_awarded: Marks
+    feedback: Annotated[str | None, Field(default=None, max_length=20_000)] = None
+
+
+class SubmissionOut(BaseModel):
+    id: uuid.UUID
+    assignment_id: uuid.UUID
+    student: PersonRef
+    attempt: int
+    body: str | None
+    file_available: bool
+    submitted_at: UtcOut
+    is_late: bool
+    status: str  # submitted | graded | superseded (a later attempt exists)
+    grade: GradeOut | None  # current (latest) grade
+    grade_history: list[GradeOut]  # oldest first; includes the current one

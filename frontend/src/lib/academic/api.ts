@@ -1,5 +1,5 @@
 import { authRequest } from "../auth/session";
-import type { Course, Enrolment, FacultyAssignment, LearningResource, ResourceInput, Subject, TimetableWeek } from "./types";
+import type { Course, Coursework, CourseworkInput, Enrolment, FacultyAssignment, LearningResource, ResourceInput, Subject, Submission, TimetableWeek } from "./types";
 
 const base = "/api/academic";
 
@@ -23,6 +23,25 @@ export const academicApi = {
     authRequest<LearningResource>(`${base}/resources/${encodeURIComponent(id)}`, { method: "PATCH", body }),
   setResourceStatus: (id: string, action: "publish" | "archive") =>
     authRequest<LearningResource>(`${base}/resources/${encodeURIComponent(id)}/${action}`, { method: "POST" }),
+
+  // ---- Assignments and submissions (M4.5)
+  myCoursework: (signal?: AbortSignal) => authRequest<Coursework[]>(`${base}/assignments/me`, { signal }),
+  managedCoursework: (signal?: AbortSignal) => authRequest<Coursework[]>(`${base}/assignments/managed?limit=500`, { signal }),
+  coursework: (id: string, signal?: AbortSignal) => authRequest<Coursework>(`${base}/assignments/${encodeURIComponent(id)}`, { signal }),
+  createCoursework: (subjectId: string, body: CourseworkInput) =>
+    authRequest<Coursework>(`${base}/subjects/${encodeURIComponent(subjectId)}/assignments`, { method: "POST", body }),
+  updateCoursework: (id: string, body: Partial<CourseworkInput>) =>
+    authRequest<Coursework>(`${base}/assignments/${encodeURIComponent(id)}`, { method: "PATCH", body }),
+  setCourseworkStatus: (id: string, action: "publish" | "archive") =>
+    authRequest<Coursework>(`${base}/assignments/${encodeURIComponent(id)}/${action}`, { method: "POST" }),
+  submitWork: (id: string, body: string) =>
+    authRequest<Submission>(`${base}/assignments/${encodeURIComponent(id)}/submissions`, { method: "POST", body: { body } }),
+  mySubmissions: (id: string, signal?: AbortSignal) =>
+    authRequest<Submission[]>(`${base}/assignments/${encodeURIComponent(id)}/submissions/me`, { signal }),
+  submissionsFor: (id: string, signal?: AbortSignal) =>
+    authRequest<Submission[]>(`${base}/assignments/${encodeURIComponent(id)}/submissions`, { signal }),
+  gradeSubmission: (id: string, marks_awarded: number, feedback: string | null) =>
+    authRequest<Submission>(`${base}/submissions/${encodeURIComponent(id)}/grades`, { method: "POST", body: { marks_awarded, feedback } }),
 
   week: (scope: "me" | "institution", week: string | null, signal?: AbortSignal) => {
     const path = scope === "me" ? `${base}/timetable/me` : `${base}/timetable`;
