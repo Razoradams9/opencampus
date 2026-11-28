@@ -4,6 +4,7 @@ import {
   ClipboardList,
   Home,
   Library,
+  Megaphone,
   LogOut,
   X,
 } from "lucide-react";
@@ -29,6 +30,7 @@ const PAGES: PageItem[] = [
   { label: "Timetable", icon: CalendarRange, to: "/timetable" },
   { label: "Learning", icon: Library, to: "/learning" },
   { label: "Assignments", icon: ClipboardList, to: "/assignments" },
+  { label: "Announcements", icon: Megaphone, to: "/announcements" },
 ];
 
 // Shown as a brief preview of what is coming.

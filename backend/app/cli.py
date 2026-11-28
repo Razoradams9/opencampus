@@ -20,7 +20,7 @@ from sqlalchemy.orm import Session
 
 from app.core.security import hash_password
 from app.db.session import session_factory, set_db_context
-from app.models import Institution, Membership, MembershipRole, MembershipStatus, User
+from app.models import Institution, Membership, MembershipRole, MembershipStatus, PublicationStatus, User
 from app.schemas.auth import PASSWORD_MAX, PASSWORD_MIN
 from app.services.auth import normalise_email
 
@@ -188,7 +188,60 @@ def seed_academic_demo(weeks: int = 4) -> None:
                             raise
         set_db_context(db, tenant_id=iid)
         total = db.scalar(select(func.count()).select_from(ClassSession).where(ClassSession.institution_id == iid))
+        _seed_content(db, institution, member, subjects, course)
     print(f"Academic demo data ready for Aldermoor ({zone.key}): {created} new sessions, {total} in total.")
+
+
+def _seed_content(db: Session, institution: Institution, member, subjects: dict, course) -> None:
+    """Resources, an assignment and announcements (M4.4-M4.6), authored
+    through the services as the people who would write them. Skips any title
+    that already exists."""
+    from datetime import timedelta
+
+    from app.api.deps import TenantContext
+    from app.core.security import utcnow
+    from app.models import Announcement, Assignment, LearningResource, User
+    from app.schemas.academic import AnnouncementCreate, AssignmentWorkCreate, ResourceCreate
+    from app.services.academic import announcements, coursework, resources
+
+    iid = institution.id
+
+    def as_member(email: str) -> TenantContext:
+        membership = member(email)
+        set_db_context(db, tenant_id=iid, user_id=membership.user_id)
+        return TenantContext(db.get(User, membership.user_id), None, institution, membership)
+
+    def exists(model, title: str) -> bool:
+        set_db_context(db, tenant_id=iid)
+        return bool(db.scalar(select(model.id).where(model.institution_id == iid, model.title == title)))
+
+    lena = as_member("lena.varga@aldermoor.example")
+    cs101 = subjects["CS101"].id
+    for item in [
+        dict(title="Week 1: values, variables and types", resource_type="note", topic="Week 1",
+             body="A variable names a value.\nEvery value has a type that decides what you can do with it."),
+        dict(title="The Python tutorial", resource_type="link", topic="Week 1",
+             external_url="https://docs.python.org/3/tutorial/", description="Chapters 1-3 before Wednesday."),
+    ]:
+        if not exists(LearningResource, item["title"]):
+            r = resources.create(db, lena, cs101, ResourceCreate(**item))
+            resources.set_status(db, as_member("lena.varga@aldermoor.example"), r.id, PublicationStatus.published)
+
+    title = "Problem set 1: expressions"
+    if not exists(Assignment, title):
+        now = utcnow()
+        a = coursework.create(db, as_member("lena.varga@aldermoor.example"), cs101, AssignmentWorkCreate(
+            title=title, instructions="Answer questions 1-5 from the week 1 notes. Show your working.",
+            available_from=now - timedelta(days=1), due_at=now + timedelta(days=6), late_policy="accept", max_marks=20))
+        coursework.set_status(db, as_member("lena.varga@aldermoor.example"), a.id, PublicationStatus.published)
+
+    for email, data in [
+        ("iris.moreau@aldermoor.example", AnnouncementCreate(title="Library opens late during exams", body="From next week the library is open until 22:00.", audience="institution", priority="important")),
+        ("lena.varga@aldermoor.example", AnnouncementCreate(title="CS101 Wednesday lab moves to Lab 1", body="Same time, Turing Building.", audience="subject", subject_id=cs101)),
+    ]:
+        if not exists(Announcement, data.title):
+            created = announcements.create(db, as_member(email), data)
+            announcements.set_status(db, as_member(email), created.id, PublicationStatus.published)
 
 
 def main() -> None:

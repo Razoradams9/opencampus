@@ -17,6 +17,8 @@ from pydantic import AfterValidator, AwareDatetime, BaseModel, Field, PlainSeria
 from app.models.course import CODE_PATTERN
 from app.models.enums import (
     AcademicStatus,
+    AnnouncementAudience,
+    AnnouncementPriority,
     AssignmentStatus,
     DegreeLevel,
     EnrolmentStatus,
@@ -506,3 +508,62 @@ class SubmissionOut(BaseModel):
     status: str  # submitted | graded | superseded (a later attempt exists)
     grade: GradeOut | None  # current (latest) grade
     grade_history: list[GradeOut]  # oldest first; includes the current one
+
+
+# ---- Announcements (M4.6) --------------------------------------------------
+
+
+def check_audience(audience: AnnouncementAudience, course_id: uuid.UUID | None, subject_id: uuid.UUID | None) -> None:
+    if audience == AnnouncementAudience.institution and (course_id or subject_id):
+        raise ValueError("an institution-wide announcement has no course or subject")
+    if audience == AnnouncementAudience.course and (not course_id or subject_id):
+        raise ValueError("a course announcement needs course_id (and no subject_id)")
+    if audience in (AnnouncementAudience.subject, AnnouncementAudience.subject_students) and (not subject_id or course_id):
+        # The course is derived from the subject, never taken from the client.
+        raise ValueError("a subject announcement needs subject_id only")
+
+
+class AnnouncementCreate(StrictModel):
+    title: Title
+    body: LongText
+    priority: AnnouncementPriority = AnnouncementPriority.normal
+    audience: AnnouncementAudience
+    course_id: uuid.UUID | None = None
+    subject_id: uuid.UUID | None = None
+    expires_at: UtcDatetime | None = None
+
+    @model_validator(mode="after")
+    def _audience(self):
+        check_audience(self.audience, self.course_id, self.subject_id)
+        if not self.body.strip():
+            raise ValueError("the announcement is empty")
+        return self
+
+
+class AnnouncementUpdate(PatchModel):
+    NULLABLE = frozenset({"course_id", "subject_id", "expires_at"})
+
+    title: Title | None = None
+    body: LongText | None = None
+    priority: AnnouncementPriority | None = None
+    audience: AnnouncementAudience | None = None
+    course_id: uuid.UUID | None = None
+    subject_id: uuid.UUID | None = None
+    expires_at: UtcDatetime | None = None
+
+
+class AnnouncementOut(BaseModel):
+    id: uuid.UUID
+    title: str
+    body: str
+    priority: AnnouncementPriority
+    audience: AnnouncementAudience
+    course: CourseRef | None
+    subject: SubjectRef | None
+    status: PublicationStatus
+    published_at: UtcOut | None
+    expires_at: UtcOut | None
+    expired: bool
+    created_by: TeacherRef
+    created_at: datetime
+    updated_at: datetime

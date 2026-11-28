@@ -8,6 +8,9 @@ three dependent modules, each migrated and tested before the next:
 | M4.1 Courses and subjects | `0004_courses_and_subjects` | `courses`, `subjects` |
 | M4.2 Student enrolments | `0005_student_enrolments` | `enrolments` (+ `memberships (institution_id, id)` key) |
 | M4.3 Timetable | `0006_timetable` | `rooms`, `faculty_assignments`, `class_sessions` (+ `institutions.timezone`, `btree_gist`) |
+| M4.4 Learning resources | `0007_learning_resources` | `learning_resources` (+ shared `publication_status` enum) |
+| M4.5 Assignments | `0008_assignments_and_submissions` | `assignments`, `submissions`, `submission_grades` |
+| M4.6 Announcements | `0009_announcements` | `announcements` |
 
 ## One platform, several clients
 
@@ -200,6 +203,113 @@ Faculty contact details are not exposed to students (`TeacherRef` has no email).
 - **Faculty → enrolment:** an active assignment of theirs with the
   enrolment's course, year and period. Ending the assignment removes access.
 
+## Authored content (M4.4–M4.6)
+
+All three modules share one access model (`services/academic/access.py`),
+read from the database on every request:
+
+- **Student grant:** an *active* enrolment in the course that owns the subject.
+- **Faculty grant:** an *active* faculty assignment for the subject (any period).
+- **College admin:** everything in the institution.
+- **Platform admin:** nothing without a membership.
+
+They also share `publication_status` (`draft → published → archived`,
+`draft → archived`). `published_at` records the first publication and is
+kept when archived. Archived rows are read-only and never deleted.
+
+### File storage
+
+There is **no file storage provider**. `services/storage.py` defines the
+interface (`FileStorage`, `get_file_storage() → None`). Columns named
+`storage_key` are reserved; the API never accepts or returns them and reports
+`file_available: false`. Files are referenced by external `http(s)` URL until
+a provider exists. Upload endpoints were deliberately not built.
+
+### M4.4 Learning resources
+
+`learning_resources`: subject (+ course, via the composite subject FK), author
+membership, `title`, `description`, `resource_type`
+(`pdf|document|presentation|video|link|note`), optional `topic`, `body`
+(notes), `external_url`, `storage_key`, status. Check: a note has text and no
+URL; every other type has a URL (or, later, a storage key). URLs must be
+`http(s)` with a host; `javascript:`, `data:`, `file:`, `ftp:` are rejected.
+
+| Method | Path | Access |
+| ------ | ---- | ------ |
+| GET | `/subjects/{id}/resources?status=` | managers: all · enrolled students: published |
+| POST | `/subjects/{id}/resources` | admin · faculty teaching the subject |
+| GET | `/resources/me?subject_id=` | published, from the caller's active enrolments |
+| GET | `/resources/managed?subject_id=&status=` | faculty (subjects taught) · admin (all) |
+| GET | `/resources/{id}` | as above, otherwise 404 |
+| PATCH | `/resources/{id}` | managers; drafts and published; content re-validated on the merged result |
+| POST | `/resources/{id}/publish`, `/archive` | managers |
+
+### M4.5 Assignments and submissions
+
+`assignments`: subject, author, `title`, `instructions`, `reference_url`,
+`available_from`, `due_at` (> available_from), `late_policy`
+(`reject | accept | accept_until` + `late_cutoff_at`), `max_marks` (0–1000],
+status.
+
+`submissions` (one row per **attempt**, numbered per student) and
+`submission_grades` (one row per **grading event**; newest is current) are
+**append-only**: the app role has `SELECT, INSERT` only. Resubmitting or
+regrading adds rows; nothing is overwritten, even by a faulty service.
+
+Late policy is applied by the server at submission time:
+
+| Window (server clock) | `reject` | `accept` | `accept_until` |
+| --------------------- | -------- | -------- | -------------- |
+| before `available_from` | 409 `assignment_not_open` | same | same |
+| ≤ `due_at` | on time | on time | on time |
+| after `due_at` | 409 `deadline_passed` | accepted, `is_late` | accepted, `is_late` until cut-off, then 409 |
+
+`is_late` is stored on the submission, so later deadline edits don't rewrite
+history. Marks must be ≤ `max_marks` (422 `marks_exceed_maximum`), and
+`max_marks` cannot drop below an awarded mark (409).
+
+| Method | Path | Access |
+| ------ | ---- | ------ |
+| GET | `/assignments/me` | student: published, available, enrolled (+ archived ones they submitted to), with `me` progress |
+| GET | `/assignments/managed?subject_id=&status=` | faculty / admin, with submitted/graded counts |
+| GET | `/subjects/{id}/assignments` | managers · enrolled students |
+| POST | `/subjects/{id}/assignments` · PATCH `/assignments/{id}` · POST `/{id}/publish`, `/archive` | managers |
+| GET | `/assignments/{id}` | visible as above |
+| POST | `/assignments/{id}/submissions` `{body}` | enrolled student, window open/late |
+| GET | `/assignments/{id}/submissions/me` | the caller's own attempts |
+| GET | `/assignments/{id}/submissions?latest_only=` | managers |
+| GET | `/submissions/{id}` | owner · managers (another student's: 404) |
+| POST | `/submissions/{id}/grades` `{marks_awarded, feedback}` | managers |
+
+### M4.6 Announcements
+
+`announcements`: author, `title`, `body`, `priority` (`normal|important|urgent`),
+`audience`, optional `course_id` / `subject_id`, status, `published_at`,
+`expires_at`. A check ties the audience to its target columns; composite FKs
+keep targets in the institution and the (course, subject) pair consistent.
+
+| Audience | Students who see it | Faculty who see it |
+| -------- | ------------------- | ------------------ |
+| `institution` | all | all |
+| `course` | actively enrolled in the course | teaching any subject in the course |
+| `subject` | enrolled in the subject's course | teaching the subject |
+| `subject_students` | enrolled in the subject's course | — (authors reach it via *managed*) |
+
+Admins see every published announcement. Feeds show only published,
+already-published, unexpired rows (`include_expired=true` adds expired ones,
+flagged `expired`). Faculty may target only `subject`/`subject_students` of
+subjects they teach. The audience is re-validated on every update and again
+at publish, so editing parameters cannot widen it. Only drafts are editable.
+
+| Method | Path | Access |
+| ------ | ---- | ------ |
+| GET | `/announcements?include_expired=` | feed for the caller |
+| POST | `/announcements` | faculty (own subjects) · admin (any audience) |
+| GET | `/announcements/managed?status=` | faculty (subjects taught) · admin (all) |
+| GET | `/announcements/{id}` | feed-visible or manageable |
+| PATCH | `/announcements/{id}` | managers, drafts only |
+| POST | `/announcements/{id}/publish`, `/archive` | managers |
+
 ## Known limitations
 
 - No recurrence: weekly patterns are created as individual sessions (the
@@ -214,3 +324,10 @@ Faculty contact details are not exposed to students (`TeacherRef` has no email).
   are enforced in the service layer, not in RLS.
 - No audit trail of who changed academic records.
 - Room capacity is informational (not compared with enrolment counts).
+- No file storage: resources, briefs and submissions are text or external links.
+- Enrolment is per course, so "students of a subject" means students of the
+  course that owns it (all semesters of that course).
+- Assignment times are entered in the browser's timezone (timetable weeks use
+  the institution's).
+- No notifications (email/push) for new announcements, assignments or grades.
+- Students may resubmit while the window is open; there is no attempt limit.

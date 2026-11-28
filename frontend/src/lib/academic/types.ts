@@ -188,3 +188,32 @@ export interface Submission {
   grade: Grade | null;
   grade_history: Grade[];
 }
+
+export type Priority = "normal" | "important" | "urgent";
+export type Audience = "institution" | "course" | "subject" | "subject_students";
+
+export interface Announcement {
+  id: string;
+  title: string;
+  body: string;
+  priority: Priority;
+  audience: Audience;
+  course: CourseRef | null;
+  subject: SubjectRef | null;
+  status: PublicationStatus;
+  published_at: string | null;
+  expires_at: string | null;
+  expired: boolean;
+  created_by: TeacherRef;
+  updated_at: string;
+}
+
+export interface AnnouncementInput {
+  title: string;
+  body: string;
+  priority: Priority;
+  audience: Audience;
+  course_id: string | null;
+  subject_id: string | null;
+  expires_at: string | null;
+}

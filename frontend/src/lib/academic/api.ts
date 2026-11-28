@@ -1,5 +1,5 @@
 import { authRequest } from "../auth/session";
-import type { Course, Coursework, CourseworkInput, Enrolment, FacultyAssignment, LearningResource, ResourceInput, Subject, Submission, TimetableWeek } from "./types";
+import type { Announcement, AnnouncementInput, Course, Coursework, CourseworkInput, Enrolment, FacultyAssignment, LearningResource, ResourceInput, Subject, Submission, TimetableWeek } from "./types";
 
 const base = "/api/academic";
 
@@ -42,6 +42,16 @@ export const academicApi = {
     authRequest<Submission[]>(`${base}/assignments/${encodeURIComponent(id)}/submissions`, { signal }),
   gradeSubmission: (id: string, marks_awarded: number, feedback: string | null) =>
     authRequest<Submission>(`${base}/submissions/${encodeURIComponent(id)}/grades`, { method: "POST", body: { marks_awarded, feedback } }),
+
+  // ---- Announcements (M4.6)
+  announcements: (includeExpired: boolean, signal?: AbortSignal) =>
+    authRequest<Announcement[]>(`${base}/announcements?limit=200${includeExpired ? "&include_expired=true" : ""}`, { signal }),
+  managedAnnouncements: (signal?: AbortSignal) => authRequest<Announcement[]>(`${base}/announcements/managed?limit=200`, { signal }),
+  createAnnouncement: (body: AnnouncementInput) => authRequest<Announcement>(`${base}/announcements`, { method: "POST", body }),
+  updateAnnouncement: (id: string, body: Partial<AnnouncementInput>) =>
+    authRequest<Announcement>(`${base}/announcements/${encodeURIComponent(id)}`, { method: "PATCH", body }),
+  setAnnouncementStatus: (id: string, action: "publish" | "archive") =>
+    authRequest<Announcement>(`${base}/announcements/${encodeURIComponent(id)}/${action}`, { method: "POST" }),
 
   week: (scope: "me" | "institution", week: string | null, signal?: AbortSignal) => {
     const path = scope === "me" ? `${base}/timetable/me` : `${base}/timetable`;

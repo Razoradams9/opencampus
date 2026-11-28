@@ -82,3 +82,24 @@ class LatePolicy(str, enum.Enum):
     reject = "reject"  # no submissions after due_at
     accept = "accept"  # accepted, flagged late
     accept_until = "accept_until"  # accepted and flagged late until late_cutoff_at
+
+
+class AnnouncementPriority(str, enum.Enum):
+    normal = "normal"
+    important = "important"
+    urgent = "urgent"
+
+
+class AnnouncementAudience(str, enum.Enum):
+    """Who an announcement is for, resolved from existing relationships:
+    institution       every member
+    course            students enrolled in the course + faculty teaching in it
+    subject           students enrolled in the subject's course + its faculty
+    subject_students  students enrolled in the subject's course only
+    (Enrolment is per course, so "enrolled in a subject" means enrolled in
+    the course that owns it.) College admins see every published one."""
+
+    institution = "institution"
+    course = "course"
+    subject = "subject"
+    subject_students = "subject_students"

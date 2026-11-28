@@ -156,8 +156,21 @@ stable hash of the subject code (`toneFor` in `lib/academic/format.ts`), so a
 subject keeps its colour and shape on every page and device.
 
 ### Real-data pages (M4)
-- **Academics** and **Timetable** reuse `SectionHeading`, `.oc-panel` and
-  `SubjectMark`; no new tokens.
+- **Academics**, **Timetable**, **Learning**, **Assignments** and
+  **Announcements** reuse `SectionHeading`, `.oc-panel` and `SubjectMark`;
+  no new tokens.
+- `SubjectRail` (Learning, Assignments): numbered editorial index on
+  desktop, horizontal chip scroller on phones.
+- Lists are ruled rows inside one panel, not card grids. Each resource type
+  has its own glyph, label and hue (`lib/academic/resourceTypes.ts`).
+- `DeadlineBar`: words ("Due in 3 days") plus a bar of the working window
+  used; teal → orange (>80%) → red (overdue).
+- Announcements: urgent/important (unexpired) are pinned under "Needs
+  attention"; a left rule and a text chip carry priority; audience is
+  always labelled (Institution-wide vs subject).
+- `components/ui/Form.tsx`: `TextInput`, `TextArea`, `Select`, `Button`
+  (primary/secondary/ghost/danger) and `StatusChip` (draft/published/archived
+  as text).
 - `DataState` (`Loading`, `LoadError` with retry, `Empty`) is the standard
   for every API-backed panel: never a blank box or a silent failure.
 - `.oc-reveal`: 180 ms rise for content arriving from the API (disabled by

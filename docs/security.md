@@ -157,6 +157,21 @@ active assignment) are enforced in the service layer on top of RLS. Each
 module has isolation tests that query with deliberately missing filters.
 Details: [`academic.md`](academic.md).
 
+M4.4–M4.6 add `learning_resources`, `assignments`, `submissions`,
+`submission_grades` and `announcements` under the same rules. In addition:
+
+- `submissions` and `submission_grades` are **append-only** for the runtime
+  role (`SELECT, INSERT`): coursework history and grades cannot be altered
+  or removed through the application, even by a faulty service.
+- Students never see drafts, other students' submissions (404), or
+  announcements not addressed to them; filters in query strings cannot widen
+  what a role may see, because every read applies the role's SQL condition.
+- Authoring rights come only from database grants (active faculty assignment,
+  admin role) and are re-checked on every write and at publish time.
+- URLs must be `http(s)` with a host and are opened with
+  `rel="noopener noreferrer"`; text content is rendered as plain text
+  (no HTML), so stored content cannot inject markup.
+
 ## Open registration
 
 The sign-up page no longer asks for an institution. Accounts registered
