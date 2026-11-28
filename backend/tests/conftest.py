@@ -45,7 +45,7 @@ from sqlalchemy import create_engine, text  # noqa: E402
 
 from app.main import create_app  # noqa: E402
 
-TABLES = "class_sessions, faculty_assignments, rooms, enrolments, subjects, courses, password_reset_tokens, rate_limit_buckets, refresh_tokens, auth_sessions, memberships, users, institutions"
+TABLES = "learning_resources, class_sessions, faculty_assignments, rooms, enrolments, subjects, courses, password_reset_tokens, rate_limit_buckets, refresh_tokens, auth_sessions, memberships, users, institutions"
 
 
 @pytest.fixture(scope="session")
@@ -127,3 +127,25 @@ def college(make_client):
         actor.membership_id = membership_of(actor.user, institution).id
         result[key] = actor
     return result
+
+
+@pytest.fixture
+def teaching(college, make_client):
+    """Aldermoor BSC-CS with CS101 (taught by `faculty`) and CS102 (taught by
+    `faculty2`); `student` is actively enrolled, `student2` is not. Halvard
+    has its own course and subject H101 taught by nobody."""
+    from app.models import MembershipRole
+    from tests.helpers import assign_faculty, create_course, create_subject, enrol, membership_of, sign_in
+
+    admin = college["admin"]
+    course = create_course(admin, code="BSC-CS")
+    cs101 = create_subject(admin, course["id"], code="CS101")
+    cs102 = create_subject(admin, course["id"], code="CS102", name="Discrete Maths")
+    faculty2 = sign_in(make_client, "lin@aldermoor.example", [(college["aldermoor"], MembershipRole.faculty)], name="Lin Chen")
+    faculty2.membership_id = membership_of(faculty2.user, college["aldermoor"]).id
+    assign_faculty(admin, cs101["id"], college["faculty"].membership_id)
+    assign_faculty(admin, cs102["id"], faculty2.membership_id)
+    enrol(admin, college["student"].membership_id, course["id"])
+    other_course = create_course(college["other_admin"], code="HAL-1")
+    h101 = create_subject(college["other_admin"], other_course["id"], code="H101")
+    return {**college, "course": course, "cs101": cs101, "cs102": cs102, "faculty2": faculty2, "h101": h101}

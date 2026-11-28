@@ -131,3 +131,12 @@ def enrol(actor: Actor, membership_id, course_id: str, *, year: str = "2026-27",
     )
     assert response.status_code == 201, response.text
     return response.json()
+
+
+def assign_faculty(actor: Actor, subject_id: str, membership_id, *, year: str = "2026-27", period: str = "Semester 1") -> dict:
+    response = actor.post(
+        "/api/academic/faculty-assignments",
+        {"subject_id": subject_id, "faculty_membership_id": str(membership_id), "academic_year": year, "academic_period": period},
+    )
+    assert response.status_code == 201, response.text
+    return response.json()

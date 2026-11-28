@@ -97,3 +97,38 @@ export const DEGREE_LABEL: Record<DegreeLevel, string> = {
   doctorate: "Doctorate",
   other: "Programme",
 };
+
+export type PublicationStatus = "draft" | "published" | "archived";
+export type ResourceType = "pdf" | "document" | "presentation" | "video" | "link" | "note";
+
+export interface LearningResource {
+  id: string;
+  course: CourseRef;
+  subject: SubjectRef;
+  title: string;
+  description: string | null;
+  resource_type: ResourceType;
+  topic: string | null;
+  body: string | null;
+  external_url: string | null;
+  file_available: boolean;
+  status: PublicationStatus;
+  created_by: TeacherRef;
+  published_at: string | null;
+  updated_at: string;
+}
+
+export interface ResourceInput {
+  title: string;
+  description: string | null;
+  resource_type: ResourceType;
+  topic: string | null;
+  body: string | null;
+  external_url: string | null;
+}
+
+/** A subject the signed-in member studies or teaches, with its course. */
+export interface MySubject {
+  subject: SubjectRef;
+  course: CourseRef;
+}

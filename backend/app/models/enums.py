@@ -56,3 +56,21 @@ class AssignmentStatus(str, enum.Enum):
 class SessionStatus(str, enum.Enum):
     scheduled = "scheduled"
     cancelled = "cancelled"
+
+
+class PublicationStatus(str, enum.Enum):
+    """Shared lifecycle of authored content (resources, coursework,
+    announcements): draft -> published -> archived; draft -> archived."""
+
+    draft = "draft"
+    published = "published"
+    archived = "archived"
+
+
+class ResourceType(str, enum.Enum):
+    pdf = "pdf"
+    document = "document"
+    presentation = "presentation"
+    video = "video"
+    link = "link"
+    note = "note"

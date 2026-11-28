@@ -15,7 +15,15 @@ from typing import Annotated, ClassVar
 from pydantic import AfterValidator, AwareDatetime, BaseModel, Field, PlainSerializer, model_validator
 
 from app.models.course import CODE_PATTERN
-from app.models.enums import AcademicStatus, AssignmentStatus, DegreeLevel, EnrolmentStatus, SessionStatus
+from app.models.enums import (
+    AcademicStatus,
+    AssignmentStatus,
+    DegreeLevel,
+    EnrolmentStatus,
+    PublicationStatus,
+    ResourceType,
+    SessionStatus,
+)
 from app.schemas.auth import StrictModel
 
 
@@ -305,3 +313,78 @@ class TimetableWeek(BaseModel):
     starts_at: datetime
     ends_at: datetime
     sessions: list[SessionOut]
+
+
+# ---- Learning resources (M4.4) ---------------------------------------------
+
+
+def _check_url(value: str) -> str:
+    """http(s) URLs with a host only: rejects javascript:, data:, file: etc."""
+    from urllib.parse import urlsplit
+
+    value = value.strip()
+    parts = urlsplit(value)
+    if parts.scheme.lower() not in ("http", "https") or not parts.hostname or any(c.isspace() for c in value):
+        raise ValueError("enter a full http:// or https:// address")
+    return value
+
+
+HttpUrlText = Annotated[str, Field(min_length=8, max_length=2048), AfterValidator(_check_url)]
+Title = Annotated[str, Field(min_length=1, max_length=200), AfterValidator(_clean_text)]
+Topic = Annotated[str, Field(min_length=1, max_length=120), AfterValidator(_clean_text)]
+LongText = Annotated[str, Field(min_length=1, max_length=50_000)]
+
+
+def check_resource_content(resource_type: ResourceType, body: str | None, external_url: str | None) -> None:
+    """Shared by create and update (where it runs on the merged result)."""
+    if resource_type == ResourceType.note:
+        if not body or not body.strip():
+            raise ValueError("a text note needs content")
+        if external_url:
+            raise ValueError("a text note cannot have a link")
+    elif not external_url:
+        # No file storage is configured yet: files are referenced by URL.
+        raise ValueError(f"a {resource_type.value} resource needs a link (file uploads are not available yet)")
+
+
+class ResourceCreate(StrictModel):
+    title: Title
+    description: Description = None
+    resource_type: ResourceType
+    topic: Topic | None = None
+    body: LongText | None = None
+    external_url: HttpUrlText | None = None
+
+    @model_validator(mode="after")
+    def _content(self):
+        check_resource_content(self.resource_type, self.body, self.external_url)
+        return self
+
+
+class ResourceUpdate(PatchModel):
+    NULLABLE = frozenset({"description", "topic", "body", "external_url"})
+
+    title: Title | None = None
+    description: Description = None
+    resource_type: ResourceType | None = None
+    topic: Topic | None = None
+    body: LongText | None = None
+    external_url: HttpUrlText | None = None
+
+
+class ResourceOut(BaseModel):
+    id: uuid.UUID
+    course: CourseRef
+    subject: SubjectRef
+    title: str
+    description: str | None
+    resource_type: ResourceType
+    topic: str | None
+    body: str | None
+    external_url: str | None
+    file_available: bool  # always false until a storage provider exists
+    status: PublicationStatus
+    created_by: TeacherRef
+    published_at: datetime | None
+    created_at: datetime
+    updated_at: datetime

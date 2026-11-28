@@ -3,6 +3,7 @@ import {
   CalendarRange,
   ClipboardList,
   Home,
+  Library,
   LogOut,
   X,
 } from "lucide-react";
@@ -26,6 +27,7 @@ const PAGES: PageItem[] = [
   { label: "Home", icon: Home, to: "/" },
   { label: "Academics", icon: BookOpen, to: "/academics" },
   { label: "Timetable", icon: CalendarRange, to: "/timetable" },
+  { label: "Learning", icon: Library, to: "/learning" },
 ];
 
 // Shown as a brief preview of what is coming.
